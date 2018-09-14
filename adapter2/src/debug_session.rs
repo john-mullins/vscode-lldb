@@ -1911,7 +1911,18 @@ impl DebugSession {
             // Running scripts during target execution seems to trigger a bug in LLDB,
             // so we defer loaded module notification till the next stop.
             for module in event.modules() {
+                let mut message = format!("Module loaded: {}", module.filespec().path());
+                let symbols = module.symbol_filespec();
+                if symbols.is_valid() {
+                    message.push_str(" (has symbols)");
+                }
+                self.console_message(message);
+
                 self.loaded_modules.push(module);
+            }
+        } else if flags & SBTargetEvent::BroadcastBitSymbolsLoaded != 0 {
+            for module in event.modules() {
+                self.console_message(format!("Symbols loaded: {}", module.symbol_filespec().path()));
             }
         }
     }

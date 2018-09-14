@@ -10,6 +10,26 @@ impl SBModule {
             return self->IsValid();
         })
     }
+    pub fn filespec(&self) -> SBFileSpec {
+        cpp!(unsafe [self as "SBModule*"] -> SBFileSpec as "SBFileSpec" {
+            return self->GetFileSpec();
+        })
+    }
+    pub fn platform_filespec(&self) -> SBFileSpec {
+        cpp!(unsafe [self as "SBModule*"] -> SBFileSpec as "SBFileSpec" {
+            return self->GetPlatformFileSpec();
+        })
+    }
+    pub fn remote_install_filespec(&self) -> SBFileSpec {
+        cpp!(unsafe [self as "SBModule*"] -> SBFileSpec as "SBFileSpec" {
+            return self->GetRemoteInstallFileSpec();
+        })
+    }
+    pub fn symbol_filespec(&self) -> SBFileSpec {
+        cpp!(unsafe [self as "SBModule*"] -> SBFileSpec as "SBFileSpec" {
+            return self->GetSymbolFileSpec();
+        })
+    }
 }
 
 impl fmt::Debug for SBModule {

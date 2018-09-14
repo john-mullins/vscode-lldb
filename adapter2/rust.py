@@ -48,6 +48,19 @@ def __lldb_init_module(debugger, internal_dict):
     attach_synthetic_to_type(StdPathBufSynthProvider, 'std::path::PathBuf')
     attach_synthetic_to_type(StdPathSynthProvider, 'std::path::Path')
 
+    attach_synthetic_to_type(StdRcSynthProvider, r'^alloc::rc::Rc<.+>$', True)
+    attach_synthetic_to_type(StdRcSynthProvider, r'^alloc::rc::Weak<.+>$', True)
+    attach_synthetic_to_type(StdArcSynthProvider, r'^alloc::sync::Arc<.+>$', True)
+    attach_synthetic_to_type(StdArcSynthProvider, r'^alloc::sync::Weak<.+>$', True)
+    attach_synthetic_to_type(StdMutexSynthProvider, r'^std::sync::mutex::Mutex<.+>$', True)
+
+    attach_synthetic_to_type(StdCellSynthProvider, r'^core::cell::Cell<.+>$', True)
+    attach_synthetic_to_type(StdRefCellSynthProvider, r'^core::cell::RefCell<.+>$', True)
+    attach_synthetic_to_type(StdRefCellBorrowSynthProvider, r'^core::cell::Ref<.+>$', True)
+    attach_synthetic_to_type(StdRefCellBorrowSynthProvider, r'^core::cell::RefMut<.+>$', True)
+
+    attach_synthetic_to_type(StdHashMapSynthProvider, r'^std::collections::hash::map::HashMap<.+>$', True)
+
     target = debugger.GetSelectedTarget()
     for module in target.modules:
         analyze_module(module)
@@ -241,8 +254,8 @@ class RustSynthProvider(object):
 
 def make_encoded_enum_provider_class(variant_name):
     # 'Encoded' enums always have two variants, of which one contains no data,
-    # and the other one contains a field (not necessarily at the top level) that
-    # implements Zeroable.  This field is then used as a two-state discriminant.
+    # and the other one contains a field (not necessarily at the top level) that implements
+    # Zeroable.  This field is then used as a two-state discriminant.
     last_separator_index = variant_name.rfind("$")
     start_index = len(ENCODED_ENUM_PREFIX)
     indices_substring = variant_name[start_index:last_separator_index].split("$")
@@ -365,6 +378,8 @@ class StdVectorSynthProvider(ArrayLikeSynthProvider):
             log.error('%s', e)
             raise
 
+##################################################################################################################
+
 class SliceSynthProvider(ArrayLikeSynthProvider):
     def ptr_and_len(self, vec):
         return (
@@ -446,3 +461,90 @@ class StdPathBufSynthProvider(StdOsStringSynthProvider):
 
 class StdPathSynthProvider(FFISliceSynthProvider):
     pass
+
+##################################################################################################################
+
+class DerefSynthProvider(RustSynthProvider):
+    def num_children(self):
+        return self.deref.GetNumChildren()
+
+    def has_children(self):
+        return self.deref.MightHaveChildren()
+
+    def get_child_at_index(self, index):
+        return self.deref.GetChildAtIndex(index)
+
+    def get_child_index(self, name):
+        return self.deref.GetIndexOfChildWithName(name)
+
+    def get_summary(self):
+        return get_obj_summary(self.deref)
+
+# Base for Rc and Arc
+class StdRefCountedSynthProvider(DerefSynthProvider):
+    def get_summary(self):
+        if self.weak != 0:
+            s = '(refs:%d,weak:%d) ' % (self.strong, self.weak)
+        else:
+            s = '(refs:%d) ' % self.strong
+        if self.strong > 0:
+            s += get_obj_summary(self.deref)
+        else:
+            s += '<disposed>'
+        return s
+
+class StdRcSynthProvider(StdRefCountedSynthProvider):
+    def initialize(self):
+        inner = gcm(self.valobj, 'ptr', 'pointer', '__0')
+        self.strong = gcm(inner, 'strong', 'value', 'value').GetValueAsUnsigned()
+        self.weak = gcm(inner, 'weak', 'value', 'value').GetValueAsUnsigned()
+        if self.strong > 0:
+            self.deref = gcm(inner, 'value')
+            self.weak -= 1 # There's an implicit weak reference communally owned by all the strong pointers
+        else:
+            self.deref = lldb.SBValue()
+
+class StdArcSynthProvider(StdRefCountedSynthProvider):
+    def initialize(self):
+        inner = gcm(self.valobj, 'ptr', 'pointer', '__0')
+        self.strong = gcm(inner, 'strong', 'v', 'value').GetValueAsUnsigned()
+        self.weak = gcm(inner, 'weak', 'v', 'value').GetValueAsUnsigned()
+        if self.strong > 0:
+            self.deref = gcm(inner, 'data')
+            self.weak -= 1 # There's an implicit weak reference communally owned by all the strong pointers
+        else:
+            self.deref = lldb.SBValue()
+
+class StdMutexSynthProvider(DerefSynthProvider):
+    def initialize(self):
+        self.deref = gcm(self.valobj, 'data', 'value')
+
+class StdCellSynthProvider(DerefSynthProvider):
+    def initialize(self):
+        self.deref = gcm(self.valobj, 'value', 'value')
+
+class StdRefCellSynthProvider(DerefSynthProvider):
+    def initialize(self):
+        self.deref = gcm(self.valobj, 'value', 'value')
+
+    def get_summary(self):
+        borrow = gcm(self.valobj, 'borrow', 'value', 'value').GetValueAsSigned()
+        s = ''
+        if borrow < 0:
+            s = '(borrowed:mut) '
+        elif borrow > 0:
+            s = '(borrowed:%d) ' % borrow
+        return s + get_obj_summary(self.deref)
+
+class StdRefCellBorrowSynthProvider(DerefSynthProvider):
+    def initialize(self):
+        self.deref = gcm(self.valobj, 'value').Dereference()
+
+##################################################################################################################
+
+class StdHashMapSynthProvider(RustSynthProvider):
+    def initialize(self):
+        self.table = gcm(self.valobj, 'table')
+
+    def get_summary(self):
+        return self.table.GetType().GetNumberOfTemplateArguments()
