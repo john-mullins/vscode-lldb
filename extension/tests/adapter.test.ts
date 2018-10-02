@@ -12,6 +12,7 @@ import * as ver from '../ver';
 import * as util from '../util';
 
 var dc: DebugClient;
+var adapter: cp.ChildProcess;
 
 const projectDir = path.join(__dirname, '..', '..');
 
