@@ -1331,13 +1331,19 @@ impl DebugSession {
         var.set_format(format);
 
         if self.deref_pointers && format == Format::Default {
-            let type_class = var.type_().type_class();
+            let ptr_type = var.type_();
+            let type_class = ptr_type.type_class();
             if type_class.intersects(TypeClass::Pointer | TypeClass::Reference) {
-                if var.value_as_unsigned(0) == 0 {
-                    value_opt = Some("<null>".to_owned());
-                } else {
-                    if var.is_synthetic() {
-                        value_opt = var.summary().map(|s| into_string_lossy(s));
+                // If pointer has associated synthetic, or if it's a pointer to basic type such as `char`,
+                // use summary of the pointer itself,
+                // otherwise prefer to dereference and use summary of the pointee.
+                if var.is_synthetic() || ptr_type.pointee_type().basic_type() != BasicType::Invalid {
+                    value_opt = var.summary().map(|s| into_string_lossy(s));
+                }
+
+                if value_opt.is_none() {
+                    if var.value_as_unsigned(0) == 0 {
+                        value_opt = Some("<null>".to_owned());
                     } else {
                         var2 = Some(var.dereference());
                         var = var2.as_ref().unwrap();

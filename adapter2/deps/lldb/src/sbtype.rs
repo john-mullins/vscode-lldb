@@ -21,6 +21,61 @@ impl SBType {
         });
         unsafe { CStr::from_ptr(ptr).to_str().unwrap() }
     }
+    pub fn pointer_type(&self) -> SBType {
+        cpp!(unsafe [self as "SBType*"] -> SBType as "SBType" {
+            return self->GetPointerType();
+        })
+    }
+    pub fn pointee_type(&self) -> SBType {
+        cpp!(unsafe [self as "SBType*"] -> SBType as "SBType" {
+            return self->GetPointeeType();
+        })
+    }
+    pub fn reference_type(&self) -> SBType {
+        cpp!(unsafe [self as "SBType*"] -> SBType as "SBType" {
+            return self->GetReferenceType();
+        })
+    }
+    pub fn typedefed_type(&self) -> SBType {
+        cpp!(unsafe [self as "SBType*"] -> SBType as "SBType" {
+            return self->GetTypedefedType();
+        })
+    }
+    pub fn dereferenced_type(&self) -> SBType {
+        cpp!(unsafe [self as "SBType*"] -> SBType as "SBType" {
+            return self->GetDereferencedType();
+        })
+    }
+    pub fn unqualified_type(&self) -> SBType {
+        cpp!(unsafe [self as "SBType*"] -> SBType as "SBType" {
+            return self->GetUnqualifiedType();
+        })
+    }
+    pub fn array_element_type(&self) -> SBType {
+        cpp!(unsafe [self as "SBType*"] -> SBType as "SBType" {
+            return self->GetArrayElementType();
+        })
+    }
+    pub fn array_type(&self, size: u64) -> SBType {
+        cpp!(unsafe [self as "SBType*", size as "uint64_t"] -> SBType as "SBType" {
+            return self->GetArrayType(size);
+        })
+    }
+    pub fn vector_element_type(&self) -> SBType {
+        cpp!(unsafe [self as "SBType*"] -> SBType as "SBType" {
+            return self->GetVectorElementType();
+        })
+    }
+    pub fn canonical_type(&self) -> SBType {
+        cpp!(unsafe [self as "SBType*"] -> SBType as "SBType" {
+            return self->GetCanonicalType();
+        })
+    }
+    pub fn basic_type(&self) -> BasicType {
+        cpp!(unsafe [self as "SBType*"] -> BasicType as "BasicType" {
+            return self->GetBasicType();
+        })
+    }
     pub fn display_name(&self) -> &str {
         let ptr = cpp!(unsafe [self as "SBType*"] -> *const c_char as "const char*" {
             return self->GetDisplayTypeName();
@@ -65,4 +120,42 @@ bitflags! {
         // Define a mask that can be used for any type when finding types
         const Any = !0;
     }
+}
+
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
+#[repr(u32)]
+pub enum BasicType {
+    Invalid = 0,
+    Void = 1,
+    Char,
+    SignedChar,
+    UnsignedChar,
+    WChar,
+    SignedWChar,
+    UnsignedWChar,
+    Char16,
+    Char32,
+    Short,
+    UnsignedShort,
+    Int,
+    UnsignedInt,
+    Long,
+    UnsignedLong,
+    LongLong,
+    UnsignedLongLong,
+    Int128,
+    UnsignedInt128,
+    Bool,
+    Half,
+    Float,
+    Double,
+    LongDouble,
+    FloatComplex,
+    DoubleComplex,
+    LongDoubleComplex,
+    ObjCID,
+    ObjCClass,
+    ObjCSel,
+    NullPtr,
+    Other,
 }

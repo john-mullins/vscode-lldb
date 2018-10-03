@@ -114,6 +114,7 @@
 				"./out/tests"
 			],
 			"env": {
+				"DEBUG_SERVER": "4711",
 				"LLDB_LOGFILE": "${workspaceRoot}/adapter.log",
 				"LLDB_EXECUTABLE": "${config:lldb.executable}",
 			},

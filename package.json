@@ -35,7 +35,7 @@
 	"dependencies": {},
 	"devDependencies": {
 		"@types/mocha": "^5.2.0",
-		"@types/node": "^6.0.50",
+		"@types/node": "^8.10",
 		"mocha": "^5.2.0",
 		"typescript": "^2.5.2",
 		"vscode": "^1.1.18",
@@ -46,10 +46,12 @@
 		"postinstall": "node ./node_modules/vscode/bin/install",
 		"watch": "tsc -w -p extension",
 		"build:extension": "tsc -p extension",
+		"build:adapter2": "python tools/build_codelldb.py",
 		"build:debuggee:cpp": "python tools/build_debuggee.py",
 		"build:debuggee:rust": "rustc debuggee/rust/types.rs -g -o debuggee/out/rusttypes",
 		"build": "npm run build:extension && npm run build:debuggee:cpp && npm run build:debuggee:rust",
 		"test:adapter": "mocha -u tdd --timeout 10000 --exit ./out/tests",
+		"test:adapter2": "DEBUG_SERVER=4711 mocha -u tdd --timeout 10000 --exit ./out/tests",
 		"test:internals": "python tools/test_internals.py",
 		"test": "npm run build:extension && npm run build:debuggee:cpp && npm run build:debuggee:rust && npm run test:internals && npm run test:adapter"
 	},

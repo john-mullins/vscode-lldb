@@ -6,13 +6,10 @@ import * as cp from 'child_process';
 import * as fs from 'fs';
 import { DebugClient } from 'vscode-debugadapter-testsupport';
 import { DebugProtocol as dp } from 'vscode-debugprotocol';
-import { format } from 'util';
+import { format, promisify } from 'util';
 
 import * as ver from '../ver';
 import * as util from '../util';
-
-var dc: DebugClient;
-var adapter: cp.ChildProcess;
 
 const projectDir = path.join(__dirname, '..', '..');
 
@@ -23,11 +20,15 @@ const debuggeeHeader = path.normalize(path.join(projectDir, 'debuggee', 'cpp', '
 const rusttypes = path.join(projectDir, 'debuggee', 'out', 'rusttypes');
 const rusttypesSource = path.normalize(path.join(projectDir, 'debuggee', 'rust', 'types.rs'));
 
+const setTimeoutAsync = promisify(setTimeout);
+
 var port: number = null;
 if (process.env.DEBUG_SERVER) {
     port = parseInt(process.env.DEBUG_SERVER)
     console.log('Debug server port:', port)
 }
+
+var dc: DebugClient;
 
 suite('Versions', () => {
     test('comparisons', async () => {
@@ -70,9 +71,20 @@ suite('Util', () => {
 
 suite('Adapter tests', () => {
 
-    setup(startAdapter);
+    suiteSetup(() => {
+        dc = new DebugClient('', '', 'lldb');
+    });
+    suiteTeardown(()=> {
+        dc.stop();
+    });
 
-    teardown(stopAdapter);
+    setup(async () => {
+        await setTimeoutAsync(100);
+        dc.start(port);
+    });
+    teardown(() => {
+        dc.stop();
+    });
 
     suite('Basic', () => {
 
@@ -354,7 +366,7 @@ suite('Adapter tests', () => {
                 reg_struct_ref: '{a:1, c:12}',
                 opt_reg_struct1: 'Some({...})',
                 opt_reg_struct2: 'None',
-                array: '(5) [1, 2, 3, 4, 5]',
+                array: { '[0]': 1, '[1]': 2, '[2]': 3, '[3]': 4, '[4]': 5 },
                 slice: '(5) &[1, 2, 3, 4, 5]',
                 vec_int: {
                     $: '(10) vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]',
@@ -415,15 +427,6 @@ suite('Adapter tests', () => {
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-
-function startAdapter() {
-    dc = new DebugClient('node', './out/tests/launcher.js', 'lldb');
-    return dc.start(port);
-}
-
-function stopAdapter() {
-    dc.stop();
-}
 
 function findMarker(file: string, marker: string): number {
     let data = fs.readFileSync(file, 'utf8');

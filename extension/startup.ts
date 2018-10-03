@@ -225,7 +225,7 @@ function spawnDebugger(args: string[], lldbPath: string, lldbEnv: Dict<string>):
         });
     }
 
-    let options = {
+    let options: cp.SpawnOptions = {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: env,
         cwd: workspace.rootPath
