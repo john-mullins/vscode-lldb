@@ -28,7 +28,7 @@ fn main() -> Result<(), std::io::Error> {
         if cfg!(target_os = "macos") {
             liblldb_path.push("LLDB.framework/LLDB");
         } else {
-            liblldb_path = std::path::PathBuf::from("liblldb-6.0.so");
+            liblldb_path.push("liblldb.so");
         };
         let liblldb_path = CString::new(liblldb_path.as_os_str().as_bytes())?;
         let liblldb = dlopen(liblldb_path.as_ptr() as *const c_char, RTLD_LAZY | RTLD_GLOBAL);
