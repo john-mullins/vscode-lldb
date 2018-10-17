@@ -22,68 +22,27 @@ const rusttypesSource = path.normalize(path.join(projectDir, 'debuggee', 'rust',
 
 const setTimeoutAsync = promisify(setTimeout);
 
-var port: number = null;
-if (process.env.DEBUG_SERVER) {
-    port = parseInt(process.env.DEBUG_SERVER)
-    console.log('Debug server port:', port)
-}
-
-var dc: DebugClient;
-
-suite('Versions', () => {
-    test('comparisons', async () => {
-        assert.ok(ver.lt('1.0.0', '2.0.0'));
-        assert.ok(ver.lt('2.0.0', '2.2.0'));
-        assert.ok(ver.lt('2.0', '2.0.0'));
-        assert.ok(ver.lt('2.0.0', '2.2'));
-        assert.ok(ver.lt('2.0.0', '100.0.0'));
-    })
-})
-
-suite('Util', () => {
-    test('expandVariables', async () => {
-        function expander(type: string, key: string) {
-            if (type == 'echo') return key;
-            if (type == 'reverse') return key.split('').reverse().join('');
-            throw new Error('Unknown ' + type + ' ' + key);
-        }
-
-        assert.equal(util.expandVariables('', expander), '');
-        assert.equal(util.expandVariables('AAAA${echo:TEST}BBBB', expander), 'AAAATESTBBBB');
-        assert.equal(util.expandVariables('AAAA${}${echo:FOO}BBBB${reverse:BAR}CCCC', expander),
-            'AAAA${}FOOBBBBRABCCCC');
-        assert.throws(() => util.expandVariables('sdfhksadjfh${hren:FOO}wqerqwer', expander));
-    })
-
-    test('mergeValues', async () => {
-        assert.deepEqual(util.mergeValues(10, undefined), 10);
-        assert.deepEqual(util.mergeValues(false, true), true);
-        assert.deepEqual(util.mergeValues(10, 0), 0);
-        assert.deepEqual(util.mergeValues("100", "200"), "200");
-        assert.deepEqual(util.mergeValues(
-            [1, 2], [3, 4]),
-            [1, 2, 3, 4]);
-        assert.deepEqual(util.mergeValues(
-            { a: 1, b: 2, c: 3 }, { a: 10, d: 40 }),
-            { a: 10, b: 2, c: 3, d: 40 });
-    })
-})
+var dc = new DebugClient('', '', 'lldb');
 
 suite('Adapter tests', () => {
 
-    suiteSetup(() => {
-        dc = new DebugClient('', '', 'lldb');
-    });
-    suiteTeardown(()=> {
+    suiteTeardown(() => {
         dc.stop();
     });
 
     setup(async () => {
-        await setTimeoutAsync(100);
+        var port = null;
+        if (process.env.DEBUG_SERVER) {
+            port = parseInt(process.env.DEBUG_SERVER)
+        } else {
+            port = await startDebugAdapter();
+        }
+        console.log('Debug server port:', port)
         dc.start(port);
     });
-    teardown(() => {
+    teardown(async () => {
         dc.stop();
+        await setTimeoutAsync(100);
     });
 
     suite('Basic', () => {
@@ -427,6 +386,39 @@ suite('Adapter tests', () => {
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
+
+async function startDebugAdapter(): Promise<number> {
+    let extensionRoot = path.join(__dirname, '..', '..');
+
+    var adapter: cp.ChildProcess;
+    if (process.env.USE_CODELLDB) {
+        adapter = cp.spawn('out/adapter2/codelldb', [], {
+            stdio: ['ignore', 'pipe', 'pipe'],
+            cwd: extensionRoot,
+        });
+    } else {
+        var lldb = 'lldb';
+        if (process.env.LLDB_EXECUTABLE) {
+            lldb = process.env.LLDB_EXECUTABLE;
+        }
+        let params = { logLevel: 0 };
+        let args = ['-b', '-Q',
+            '-O', format('command script import \'%s\'', path.join(extensionRoot, 'adapter')),
+            '-O', format('script adapter.run_tcp_session(0 ,\'%s\')', new Buffer(JSON.stringify(params)).toString('base64'))
+        ]
+        console.log('Launching %s %s', lldb, args);
+        adapter = cp.spawn(lldb, args, {
+            stdio: ['ignore', 'pipe', 'pipe'],
+            cwd: extensionRoot
+        });
+    }
+    adapter.stderr.pipe(process.stderr);
+
+    let regex = new RegExp('^Listening on port (\\d+)\\s', 'm');
+    let match = await util.waitForPattern(adapter, adapter.stdout, regex);
+    let port = parseInt(match[1]);
+    return port;
+}
 
 function findMarker(file: string, marker: string): number {
     let data = fs.readFileSync(file, 'utf8');

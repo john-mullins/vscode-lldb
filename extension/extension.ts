@@ -59,7 +59,6 @@ class Extension implements TextDocumentContentProvider, DebugConfigurationProvid
         subscriptions.push(commands.registerCommand('lldb.getCargoLaunchConfigs', () => this.getCargoLaunchConfigs()));
         subscriptions.push(commands.registerCommand('lldb.pickProcess', () => this.pickProcess(false)));
         subscriptions.push(commands.registerCommand('lldb.pickMyProcess', () => this.pickProcess(true)));
-        subscriptions.push(commands.registerCommand('lldb.launchDebugServer', () => startup.launchDebugServer(this.context)));
 
         this.registerDisplaySettingCommand('lldb.showDisassembly', async (settings) => {
             settings.showDisassembly = await window.showQuickPick(['always', 'auto', 'never']);

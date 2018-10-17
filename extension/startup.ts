@@ -51,7 +51,7 @@ export async function startDebugAdapter(
         let adapterPath = path.join(context.extensionPath, 'adapter');
         args = ['-b',
             '-O', format('command script import \'%s\'', adapterPath),
-            '-O', format('script adapter.main.run_tcp_session(0, \'%s\')', paramsBase64)
+            '-O', format('script adapter.run_tcp_session(0, \'%s\')', paramsBase64)
         ];
         lldbPath = config.get('executable', 'lldb');
     } else {
@@ -65,20 +65,6 @@ export async function startDebugAdapter(
     let adapter = new AdapterProcess(lldb);
     adapter.port = parseInt(match[1]);
     return adapter;
-}
-
-export async function launchDebugServer(context: ExtensionContext) {
-    let config = workspace.getConfiguration('lldb', null);
-    let adapterPath = path.join(context.extensionPath, 'adapter');
-    let paramsBase64 = getAdapterParameters(config, {});
-    let lldbPath = config.get('executable', 'lldb');
-
-    let command =
-        format('%s -b -O "command script import \'%s\'" ', lldbPath, adapterPath) +
-        format('-O "script adapter.main.run_tcp_server()"\n');
-    let terminal = window.createTerminal('LLDB Debug Server');
-    terminal.sendText(command);
-    terminal.show(true);
 }
 
 function setIfDefined(target: Dict<any>, config: WorkspaceConfiguration, key: string) {
