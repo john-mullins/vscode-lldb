@@ -9,7 +9,7 @@ import stat
 def main():
     subprocess.check_call(['cargo', 'build'])
 
-    workspace_folder = sys.argv[1]
+    workspace_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     build_dir = workspace_folder + '/target/debug'
     target_dir = workspace_folder + '/out/adapter2'
     make_dirs(target_dir)

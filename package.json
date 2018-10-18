@@ -53,7 +53,7 @@
 		"test:adapter": "mocha -u tdd --timeout 10000 --exit ./out/tests",
 		"test:adapter2": "DEBUG_SERVER=4711 mocha -u tdd --timeout 10000 --exit ./out/tests",
 		"test:internals": "python tools/test_internals.py",
-		"test": "npm run build:extension && npm run build:debuggee:cpp && npm run build:debuggee:rust && npm run test:internals && npm run test:adapter"
+		"test": "npm run build:extension && npm run build:adapter2 && npm run build:debuggee:cpp && npm run build:debuggee:rust && npm run test:internals && npm run test:adapter"
 	},
 	"main": "./out/extension",
 	"activationEvents": [
