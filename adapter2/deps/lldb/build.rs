@@ -5,8 +5,8 @@ fn main() {
 
     #[cfg(target_os = "linux")]
     {
-        println!("cargo:rustc-link-search={}", "/usr/lib/llvm-6.0/lib");
-        println!("cargo:rustc-link-lib={}", "lldb-6.0");
+        // println!("cargo:rustc-link-search={}", "/usr/lib/llvm-6.0/lib");
+        // println!("cargo:rustc-link-lib={}", "lldb-6.0");
     }
     #[cfg(target_os = "macos")]
     {

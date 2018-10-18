@@ -6,9 +6,8 @@ import * as cp from 'child_process';
 import * as fs from 'fs';
 import { DebugClient } from 'vscode-debugadapter-testsupport';
 import { DebugProtocol as dp } from 'vscode-debugprotocol';
-import { format, promisify } from 'util';
+import { format, promisify, inspect } from 'util';
 
-import * as ver from '../ver';
 import * as util from '../util';
 
 const projectDir = path.join(__dirname, '..', '..');
@@ -20,7 +19,8 @@ const debuggeeHeader = path.normalize(path.join(projectDir, 'debuggee', 'cpp', '
 const rusttypes = path.join(projectDir, 'debuggee', 'out', 'rusttypes');
 const rusttypesSource = path.normalize(path.join(projectDir, 'debuggee', 'rust', 'types.rs'));
 
-const setTimeoutAsync = promisify(setTimeout);
+const sleepAsync = promisify(setTimeout);
+const openFileAsync = promisify(fs.open);
 
 var dc = new DebugClient('', '', 'lldb');
 
@@ -37,12 +37,12 @@ suite('Adapter tests', () => {
         } else {
             port = await startDebugAdapter();
         }
-        console.log('Debug server port:', port)
+        //console.log('Debug server port:', port)
         dc.start(port);
     });
     teardown(async () => {
         dc.stop();
-        await setTimeoutAsync(100);
+        await sleepAsync(100);
     });
 
     suite('Basic', () => {
@@ -390,11 +390,17 @@ suite('Adapter tests', () => {
 async function startDebugAdapter(): Promise<number> {
     let extensionRoot = path.join(__dirname, '..', '..');
 
+    var adapterLog = 2;
+    if (process.env.ADAPTER_LOG) {
+        adapterLog = await openFileAsync(process.env.ADAPTER_LOG, 'w');
+    }
+
     var adapter: cp.ChildProcess;
     if (process.env.USE_CODELLDB) {
         adapter = cp.spawn('out/adapter2/codelldb', [], {
-            stdio: ['ignore', 'pipe', 'pipe'],
+            stdio: ['ignore', 'pipe', adapterLog],
             cwd: extensionRoot,
+            env: Object.assign({ RUST_LOG: 'error,codelldb=debug' }, process.env)
         });
     } else {
         var lldb = 'lldb';
@@ -406,17 +412,18 @@ async function startDebugAdapter(): Promise<number> {
             '-O', format('command script import \'%s\'', path.join(extensionRoot, 'adapter')),
             '-O', format('script adapter.run_tcp_session(0 ,\'%s\')', new Buffer(JSON.stringify(params)).toString('base64'))
         ]
-        console.log('Launching %s %s', lldb, args);
         adapter = cp.spawn(lldb, args, {
-            stdio: ['ignore', 'pipe', 'pipe'],
-            cwd: extensionRoot
+            stdio: ['ignore', 'pipe', adapterLog],
+            cwd: extensionRoot,
         });
     }
-    adapter.stderr.pipe(process.stderr);
 
     let regex = new RegExp('^Listening on port (\\d+)\\s', 'm');
     let match = await util.waitForPattern(adapter, adapter.stdout, regex);
     let port = parseInt(match[1]);
+    await sleepAsync(100);
+
+    adapter.stdout.pipe(process.stderr);
     return port;
 }
 
