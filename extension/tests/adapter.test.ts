@@ -4,11 +4,13 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as cp from 'child_process';
 import * as fs from 'fs';
+import * as net from 'net';
 import { DebugClient } from 'vscode-debugadapter-testsupport';
 import { DebugProtocol as dp } from 'vscode-debugprotocol';
 import { format, promisify, inspect } from 'util';
 
 import * as util from '../util';
+import { networkInterfaces } from 'os';
 
 const projectDir = path.join(__dirname, '..', '..');
 
@@ -390,13 +392,12 @@ suite('Adapter tests', () => {
 async function startDebugAdapter(): Promise<number> {
     let extensionRoot = path.join(__dirname, '..', '..');
 
-    var adapterLog = 2;
-    if (process.env.ADAPTER_LOG) {
-        adapterLog = await openFileAsync(process.env.ADAPTER_LOG, 'w');
-    }
-
     var adapter: cp.ChildProcess;
     if (process.env.USE_CODELLDB) {
+        var adapterLog = 2;
+        if (process.env.ADAPTER_LOG) {
+            adapterLog = await openFileAsync(process.env.ADAPTER_LOG, 'w');
+        }
         adapter = cp.spawn('out/adapter2/codelldb', [], {
             stdio: ['ignore', 'pipe', adapterLog],
             cwd: extensionRoot,
@@ -407,7 +408,13 @@ async function startDebugAdapter(): Promise<number> {
         if (process.env.LLDB_EXECUTABLE) {
             lldb = process.env.LLDB_EXECUTABLE;
         }
-        let params = { logLevel: 0 };
+        let params: any = { logLevel: 40 };
+        if (process.env.ADAPTER_LOG) {
+            params = {
+                logLevel: 0,
+                logFile: process.env.ADAPTER_LOG
+            };
+        }
         let args = ['-b', '-Q',
             '-O', format('command script import \'%s\'', path.join(extensionRoot, 'adapter')),
             '-O', format('script adapter.run_tcp_session(0 ,\'%s\')', new Buffer(JSON.stringify(params)).toString('base64'))
@@ -421,8 +428,7 @@ async function startDebugAdapter(): Promise<number> {
     let regex = new RegExp('^Listening on port (\\d+)\\s', 'm');
     let match = await util.waitForPattern(adapter, adapter.stdout, regex);
     let port = parseInt(match[1]);
-    await sleepAsync(100);
-
+    await sleepAsync(0); // Staves off a race condition inside DebugClient.
     adapter.stdout.pipe(process.stderr);
     return port;
 }

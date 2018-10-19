@@ -1,5 +1,6 @@
 {
     "lldb.logLevel": 0,
-    "lldb.useCodeLLDB": true,
-    "lldb.launch.debugServer": 4711
+    "lldb.executable": "/home/chega/NW/llvm-build/build/bin/lldb"
+    //"lldb.useCodeLLDB": true,
+    //"lldb.launch.debugServer": 4711
 }

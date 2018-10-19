@@ -30,7 +30,8 @@
 			"request": "launch",
 			"program": "${workspaceFolder}/out/adapter2/codelldb",
 			"args": [
-				"--multi-session"
+				"--multi-session",
+				"--port=4711"
 			],
 			"env": {
 				//"PATH": "${env:PATH};C:\\Python37-64",
@@ -124,23 +125,16 @@
 			"request": "launch",
 			"cwd": "${workspaceRoot}",
 			"program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
-			// "runtimeArgs": [
-			// 	"--nolazy",
-			// 	"--harmony"
-			// ],
 			"args": [
-				"-u",
-				"tdd",
-				"--timeout",
-				"999999",
+				"-u", "tdd",
+				"--timeout", "999999",
 				"--colors",
 				"--exit",
-				"-g",
-				"variables",
+				"-g", "run program",
 				"./out/tests"
 			],
 			"env": {
-				//"USE_CODELLDB": "1",
+				"USE_CODELLDB": "1",
 				"LLDB_EXECUTABLE": "${config:lldb.executable}",
 				"RUST_LOG": "error,codelldb=debug",
 				"RUST_BACKTRACE": "full"
