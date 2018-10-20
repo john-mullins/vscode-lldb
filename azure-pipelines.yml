@@ -17,12 +17,13 @@ jobs:
   - task: DownloadBuildArtifacts@0
     inputs:
       buildType: specific
-      project: 'vadimcn'
-      pipeline: 'llvm-build'
+      project: 'llvm-build'
+      pipeline: 'vadimcn.llvm-build'
       buildVersionToDownload: specific
       buildId: $(lldbBuildId)
       downloadType: single
       artifactName: 'Linux LLDB'
+    displayName: 'Download LLDB'
 
   - script: |
       sudo apt-get install python-lldb-4.0 -y
@@ -53,12 +54,13 @@ jobs:
   - task: DownloadBuildArtifacts@0
     inputs:
       buildType: specific
-      project: 'vadimcn'
-      pipeline: 'llvm-build'
+      project: 'llvm-build'
+      pipeline: 'vadimcn.llvm-build'
       buildVersionToDownload: specific
       buildId: $(lldbBuildId)
       downloadType: single
       artifactName: 'OSX LLDB'
+    displayName: 'Download LLDB'
 
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-apple-darwin
@@ -92,12 +94,13 @@ jobs:
   - task: DownloadBuildArtifacts@0
     inputs:
       buildType: specific
-      project: 'vadimcn'
-      pipeline: 'llvm-build'
+      project: 'llvm-build'
+      pipeline: 'vadimcn.llvm-build'
       buildVersionToDownload: specific
       buildId: $(lldbBuildId)
       downloadType: single
       artifactName: 'Windows LLDB'
+    displayName: 'Download LLDB'
 
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-gnu
