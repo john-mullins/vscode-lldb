@@ -1,5 +1,5 @@
 variables:
-  lldbBuildId: '20181020.2'
+  lldbBuildId: 149
 
 ##########################################
 
@@ -20,7 +20,7 @@ jobs:
       project: 'llvm-build'
       pipeline: 'vadimcn.llvm-build'
       buildVersionToDownload: specific
-      buildId: '$(lldbBuildId)'
+      buildId: $(lldbBuildId)
       downloadType: single
       artifactName: 'Linux LLDB'
     displayName: 'Download LLDB'
@@ -57,7 +57,7 @@ jobs:
       project: 'llvm-build'
       pipeline: 'vadimcn.llvm-build'
       buildVersionToDownload: specific
-      buildId: '$(lldbBuildId)'
+      buildId: $(lldbBuildId)
       downloadType: single
       artifactName: 'OSX LLDB'
     displayName: 'Download LLDB'
@@ -97,7 +97,7 @@ jobs:
       project: 'llvm-build'
       pipeline: 'vadimcn.llvm-build'
       buildVersionToDownload: specific
-      buildId: '$(lldbBuildId)'
+      buildId: $(lldbBuildId)
       downloadType: single
       artifactName: 'Windows LLDB'
     displayName: 'Download LLDB'
