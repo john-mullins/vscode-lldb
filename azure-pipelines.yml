@@ -35,6 +35,7 @@ jobs:
       export LLDB_ROOT="$BUILD_ARTIFACTSTAGINGDIRECTORY/Linux LLDB"
       export PATH="$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH"
       export ADAPTER_LOG=$HOME/lldb.log
+      env
       npm run build
       npm run test
     displayName: 'Build+Test'
@@ -71,6 +72,7 @@ jobs:
       export PATH="$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH"
       export ADAPTER_LOG=$HOME/lldb.log
       export LLDB_ROOT="$BUILD_ARTIFACTSTAGINGDIRECTORY/OSX LLDB"
+      env
       npm run build
       npm run test
     displayName: 'Build+Test'
@@ -115,6 +117,7 @@ jobs:
       set ADAPTER_LOG=%TEMP%\lldb.log
       set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
       set PYTHONPATH=%PYTHONHOME%\Lib;%PYTHONHOME%\DLLs
+      set
       npm run build
       npm run test
     displayName: 'Build+Test'
