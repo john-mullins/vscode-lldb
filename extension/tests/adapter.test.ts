@@ -408,7 +408,7 @@ async function startDebugAdapter(): Promise<number> {
         if (process.env.LLDB_EXECUTABLE) {
             lldb = process.env.LLDB_EXECUTABLE;
         }
-        let params: any = { logLevel: 40 };
+        var params: any = { logLevel: 40 };
         if (process.env.ADAPTER_LOG) {
             params = {
                 logLevel: 0,
@@ -420,7 +420,7 @@ async function startDebugAdapter(): Promise<number> {
             '-O', format('script adapter.run_tcp_session(0 ,\'%s\')', new Buffer(JSON.stringify(params)).toString('base64'))
         ]
         adapter = cp.spawn(lldb, args, {
-            stdio: ['ignore', 'pipe', adapterLog],
+            stdio: ['ignore', 'pipe', 'pipe'],
             cwd: extensionRoot,
         });
     }

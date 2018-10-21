@@ -26,18 +26,18 @@ jobs:
     displayName: 'Download LLDB'
 
   - script: |
-      sudo apt-get install python-lldb-4.0 -y
       echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-unknown-linux-gnu
       npm install
     displayName: 'Setup'
 
   - script: |
-      export PATH="$HOME/.cargo/bin:$PATH"
-      export LLDB_EXECUTABLE=lldb-4.0
-      export LLDB_LOGFILE=$HOME/lldb.log
-      npm test
-    displayName: 'Test'
+      export LLDB_ROOT="$BUILD_ARTIFACTSTAGINGDIRECTORY/Linux LLDB"
+      export PATH="$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH"
+      export ADAPTER_LOG=$HOME/lldb.log
+      npm run build
+      npm run test
+    displayName: 'Build+Test'
 
 ##########################################
 
@@ -68,10 +68,12 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      export PATH="$HOME/.cargo/bin:$PATH"
-      export LLDB_LOGFILE=$HOME/lldb.log
-      npm test
-    displayName: 'Test'
+      export PATH="$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH"
+      export ADAPTER_LOG=$HOME/lldb.log
+      export LLDB_ROOT="$BUILD_ARTIFACTSTAGINGDIRECTORY/OSX LLDB"
+      npm run build
+      npm run test
+    displayName: 'Build+Test'
 
  ##########################################
 
@@ -104,19 +106,18 @@ jobs:
 
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-gnu
-      curl -L https://github.com/vadimcn/lldb/releases/download/0.0.0/lldb.zip -o %TEMP%\lldb.zip
-      unzip %TEMP%\lldb.zip -d %AGENT_BUILDDIRECTORY%
       npm install
     displayName: 'Setup'
 
   - script: |
-      set PATH=%USERPROFILE%\.cargo\bin;%AGENT_BUILDDIRECTORY%\lldb\bin;%PATH%
-      set LLDB_EXECUTABLE=lldb.exe
-      set LLDB_LOGFILE=%TEMP%\lldb.log
+      set LLDB_ROOT="%BUILD_ARTIFACTSTAGINGDIRECTORY%\Windows LLDB"
+      set PATH=%USERPROFILE%\.cargo\bin;%LLDB_ROOT%\bin;%PATH%
+      set ADAPTER_LOG=%TEMP%\lldb.log
       set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
       set PYTHONPATH=%PYTHONHOME%\Lib;%PYTHONHOME%\DLLs
-      npm test
-    displayName: 'Test'
+      npm run build
+      npm run test
+    displayName: 'Build+Test'
 
   - script: |
       type %TEMP%\lldb.log

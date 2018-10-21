@@ -7,9 +7,12 @@ import subprocess
 import stat
 
 def main():
+    lldb_root = os.environ['LLDB_ROOT']
+    if not lldb_root: raise Exception('Need LLDB_ROOT')
+    workspace_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
     subprocess.check_call(['cargo', 'build'])
 
-    workspace_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     build_dir = workspace_folder + '/target/debug'
     target_dir = workspace_folder + '/out/adapter2'
     make_dirs(target_dir)
@@ -22,37 +25,40 @@ def main():
         copy_if_newer(build_dir + '/codelldb', target_dir)
         copy_if_newer(build_dir + '/libcodelldb.so', target_dir)
 
-        # copy_if_newer('/usr/lib/llvm-6.0/bin/lldb-server-6.0.1', target_dir)
-        # copy_if_newer('/usr/lib/llvm-6.0/lib/liblldb-6.0.so', target_dir)
-
-        copy_if_newer('/home/chega/NW/llvm-build/build/bin/lldb-server', target_dir)
-        copy_if_newer('/home/chega/NW/llvm-build/build/lib/liblldb.so', target_dir)
+        copy_if_newer(lldb_root + '/bin/lldb', target_dir)
+        copy_if_newer(lldb_root + '/bin/lldb-server', target_dir)
+        copy_if_newer(lldb_root + '/lib/liblldb.so', target_dir)
 
         target_site_packages = target_dir + '/python2.7/site-packages'
         if not os.path.isdir(target_site_packages):
-            shutil.copytree('/home/chega/NW/llvm-build/build/lib//python2.7/site-packages', target_site_packages,
+            shutil.copytree(lldb_root + '/lib/python2.7/site-packages', target_site_packages,
                 ignore=shutil.ignore_patterns('_lldb.*'))
 
     elif sys.platform.startswith('darwin'):
         copy_if_newer(build_dir + '/codelldb', target_dir)
         copy_if_newer(build_dir + '/libcodelldb.dylib', target_dir)
-        target_framework = target_dir + '/LLDB.framework'
-        if not os.path.isdir(target_framework):
-            shutil.copytree('/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework', target_framework,
+
+        copy_if_newer(lldb_root + '/bin/lldb', target_dir)
+        copy_if_newer(lldb_root + '/lib/liblldb.dylib', target_dir)
+
+        target_site_packages = target_dir + '/python2.7/site-packages'
+        if not os.path.isdir(target_site_packages):
+            shutil.copytree(lldb_root + '/lib/python2.7/site-packages', target_site_packages,
                 ignore=shutil.ignore_patterns('_lldb.*'))
 
     elif sys.platform.startswith('win32'):
         copy_if_newer(build_dir + '/codelldb.exe', target_dir)
         copy_if_newer(build_dir + '/codelldb.dll', target_dir)
-        copy_if_newer('C:/NW/ll/build/bin/liblldb.dll', target_dir)
-        copy_if_newer('C:/NW/ll/build/bin/liblldb.pdb', target_dir)
 
-        # copy_if_newer('C:/NW/ll/build/bin/lldb.exe', target_dir)
-        # copy_if_newer('C:/NW/ll/build/bin/lldb.pdb', target_dir)
+        copy_if_newer(lldb_root + '/bin/lldb.exe', target_dir)
+        copy_if_newer(lldb_root + '/bin/lldb.pdb', target_dir)
+
+        copy_if_newer(lldb_root + '/bin/liblldb.dll', target_dir)
+        copy_if_newer(lldb_root + '/bin/liblldb.pdb', target_dir)
 
         target_site_packages = target_dir + '/../lib/site-packages'
         if not os.path.isdir(target_site_packages):
-            shutil.copytree('C:/NW/ll/build/lib/site-packages', target_site_packages,
+            shutil.copytree(lldb_root +  + '/lib/site-packages', target_site_packages,
                 ignore=shutil.ignore_patterns('_lldb.*'))
     else:
         assert False
