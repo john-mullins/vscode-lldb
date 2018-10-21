@@ -38,7 +38,7 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      export LLDB_ROOT=$(System.ArtifactsDirectory)/Linux_LLDB
+      export LLDB_ROOT=$(System.ArtifactsDirectory)/Linux LLDB
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
       export ADAPTER_LOG=$HOME/lldb.log
       env
@@ -81,7 +81,7 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      export LLDB_ROOT=$(System.ArtifactsDirectory)/OSX_LLDB
+      export LLDB_ROOT=$(System.ArtifactsDirectory)/OSX LLDB
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
       export ADAPTER_LOG=$HOME/lldb.log
       env
@@ -130,7 +130,7 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      set LLDB_ROOT=$(System.ArtifactsDirectory)\Windows_LLDB
+      set LLDB_ROOT=$(System.ArtifactsDirectory)\Windows LLDB
       set PATH=%USERPROFILE%\.cargo\bin;%LLDB_ROOT%\bin;%PATH%
       set ADAPTER_LOG=%TEMP%\lldb.log
       set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
