@@ -27,8 +27,8 @@ jobs:
 
   - task: CopyFiles@2
     inputs:
-      sourceFolder: '$(Build.ArtifactStagingDirectory)/Linux LLDB'
-      targetFolder: '$(Build.ArtifactStagingDirectory)/Linux_LLDB'
+      sourceFolder: '$(System.ArtifactsDirectory)/Linux LLDB'
+      targetFolder: '$(System.ArtifactsDirectory)/Linux_LLDB'
       contents: '**\*'
 
   - script: |
@@ -38,7 +38,7 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      export LLDB_ROOT=$(Build.ArtifactStagingDirectory)/Linux_LLDB
+      export LLDB_ROOT=$(System.ArtifactsDirectory)/Linux_LLDB
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
       export ADAPTER_LOG=$HOME/lldb.log
       env
@@ -71,8 +71,8 @@ jobs:
 
   - task: CopyFiles@2
     inputs:
-      sourceFolder: '$(Build.ArtifactStagingDirectory)/OSX LLDB'
-      targetFolder: '$(Build.ArtifactStagingDirectory)/OSX_LLDB'
+      sourceFolder: '$(System.ArtifactsDirectory)/OSX LLDB'
+      targetFolder: '$(System.ArtifactsDirectory)/OSX_LLDB'
       contents: '**\*'
 
   - script: |
@@ -81,7 +81,7 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      export LLDB_ROOT=$(Build.ArtifactStagingDirectory)/OSX_LLDB
+      export LLDB_ROOT=$(System.ArtifactsDirectory)/OSX_LLDB
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
       export ADAPTER_LOG=$HOME/lldb.log
       env
@@ -120,8 +120,8 @@ jobs:
 
   - task: CopyFiles@2
     inputs:
-      sourceFolder: '$(Build.ArtifactStagingDirectory)/Windows LLDB'
-      targetFolder: '$(Build.ArtifactStagingDirectory)/Windows_LLDB'
+      sourceFolder: '$(System.ArtifactsDirectory)/Windows LLDB'
+      targetFolder: '$(System.ArtifactsDirectory)/Windows_LLDB'
       contents: '**\*'
 
   - script: |
@@ -130,7 +130,7 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      set LLDB_ROOT=$(Build.ArtifactStagingDirectory)\Windows_LLDB
+      set LLDB_ROOT=$(System.ArtifactsDirectory)\Windows_LLDB
       set PATH=%USERPROFILE%\.cargo\bin;%LLDB_ROOT%\bin;%PATH%
       set ADAPTER_LOG=%TEMP%\lldb.log
       set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
