@@ -25,6 +25,12 @@ jobs:
       artifactName: 'Linux LLDB'
     displayName: 'Download LLDB'
 
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.ArtifactStagingDirectory)/Linux LLDB'
+      targetFolder: '$(Build.ArtifactStagingDirectory)/Linux_LLDB'
+      contents: '**\*'
+
   - script: |
       echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-unknown-linux-gnu
@@ -32,8 +38,8 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      export LLDB_ROOT="$BUILD_ARTIFACTSTAGINGDIRECTORY/Linux LLDB"
-      export PATH="$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH"
+      export LLDB_ROOT=$(Build.ArtifactStagingDirectory)/Linux_LLDB
+      export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
       export ADAPTER_LOG=$HOME/lldb.log
       env
       npm run build
@@ -63,15 +69,21 @@ jobs:
       artifactName: 'OSX LLDB'
     displayName: 'Download LLDB'
 
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.ArtifactStagingDirectory)/OSX LLDB'
+      targetFolder: '$(Build.ArtifactStagingDirectory)/OSX_LLDB'
+      contents: '**\*'
+
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-apple-darwin
       npm install
     displayName: 'Setup'
 
   - script: |
-      export PATH="$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH"
+      export LLDB_ROOT=$(Build.ArtifactStagingDirectory)/OSX_LLDB
+      export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
       export ADAPTER_LOG=$HOME/lldb.log
-      export LLDB_ROOT="$BUILD_ARTIFACTSTAGINGDIRECTORY/OSX LLDB"
       env
       npm run build
       npm run test
@@ -106,13 +118,19 @@ jobs:
       artifactName: 'Windows LLDB'
     displayName: 'Download LLDB'
 
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.ArtifactStagingDirectory)/Windows LLDB'
+      targetFolder: '$(Build.ArtifactStagingDirectory)/Windows_LLDB'
+      contents: '**\*'
+
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-gnu
       npm install
     displayName: 'Setup'
 
   - script: |
-      set LLDB_ROOT="%BUILD_ARTIFACTSTAGINGDIRECTORY%\Windows LLDB"
+      set LLDB_ROOT=$(Build.ArtifactStagingDirectory)\Windows_LLDB
       set PATH=%USERPROFILE%\.cargo\bin;%LLDB_ROOT%\bin;%PATH%
       set ADAPTER_LOG=%TEMP%\lldb.log
       set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
