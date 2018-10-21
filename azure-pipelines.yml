@@ -28,8 +28,8 @@ jobs:
   - task: CopyFiles@2
     inputs:
       sourceFolder: '$(System.ArtifactsDirectory)/Linux LLDB'
-      targetFolder: '$(System.ArtifactsDirectory)/Linux_LLDB'
-      contents: '**\*'
+      targetFolder: '$(System.ArtifactsDirectory)/lldb-linux'
+      contents: '**/*'
 
   - script: |
       echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
@@ -38,13 +38,22 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      export LLDB_ROOT=$(System.ArtifactsDirectory)/Linux LLDB
+      export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-linux
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
-      export ADAPTER_LOG=$HOME/lldb.log
+      export ADAPTER_LOG=/tmp/lldb.log
       env
       npm run build
       npm run test
     displayName: 'Build+Test'
+
+  - script: |
+      cat /tmp/lldb.log
+      echo - env ------------------
+      env
+      echo - dir -----------------------
+      ls -R $(System.ArtifactsDirectory)
+    displayName: 'On Failure'
+    condition: failed()
 
 ##########################################
 
@@ -72,8 +81,8 @@ jobs:
   - task: CopyFiles@2
     inputs:
       sourceFolder: '$(System.ArtifactsDirectory)/OSX LLDB'
-      targetFolder: '$(System.ArtifactsDirectory)/OSX_LLDB'
-      contents: '**\*'
+      targetFolder: '$(System.ArtifactsDirectory)/lldb-osx'
+      contents: '**/*'
 
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-apple-darwin
@@ -81,13 +90,22 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      export LLDB_ROOT=$(System.ArtifactsDirectory)/OSX LLDB
+      export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-osx
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
-      export ADAPTER_LOG=$HOME/lldb.log
+      export ADAPTER_LOG=/tmp/lldb.log
       env
       npm run build
       npm run test
     displayName: 'Build+Test'
+
+  - script: |
+      cat /tmp/lldb.log
+      echo - env ------------------
+      env
+      echo - dir -----------------------
+      ls -R $(System.ArtifactsDirectory)
+    displayName: 'On Failure'
+    condition: failed()
 
  ##########################################
 
@@ -121,8 +139,8 @@ jobs:
   - task: CopyFiles@2
     inputs:
       sourceFolder: '$(System.ArtifactsDirectory)/Windows LLDB'
-      targetFolder: '$(System.ArtifactsDirectory)/Windows_LLDB'
-      contents: '**\*'
+      targetFolder: '$(System.ArtifactsDirectory)/lldb-windows'
+      contents: '**/*'
 
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-gnu
@@ -130,7 +148,7 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      set LLDB_ROOT=$(System.ArtifactsDirectory)\Windows LLDB
+      set LLDB_ROOT=$(System.ArtifactsDirectory)\lldb-windows
       set PATH=%USERPROFILE%\.cargo\bin;%LLDB_ROOT%\bin;%PATH%
       set ADAPTER_LOG=%TEMP%\lldb.log
       set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
