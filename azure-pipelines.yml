@@ -1,5 +1,5 @@
 variables:
-  lldbBuildId: 157
+  lldbBuildId: 162
 
 ##########################################
 
@@ -24,12 +24,6 @@ jobs:
       downloadType: single
       artifactName: 'Linux LLDB'
     displayName: 'Download LLDB'
-
-  - task: CopyFiles@2
-    inputs:
-      sourceFolder: '$(System.ArtifactsDirectory)/Linux LLDB'
-      targetFolder: '$(System.ArtifactsDirectory)/lldb-linux'
-      contents: '**/*'
 
   - script: |
       echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
@@ -77,12 +71,6 @@ jobs:
       downloadType: single
       artifactName: 'OSX LLDB'
     displayName: 'Download LLDB'
-
-  - task: CopyFiles@2
-    inputs:
-      sourceFolder: '$(System.ArtifactsDirectory)/OSX LLDB'
-      targetFolder: '$(System.ArtifactsDirectory)/lldb-osx'
-      contents: '**/*'
 
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-apple-darwin
@@ -135,12 +123,6 @@ jobs:
       downloadType: single
       artifactName: 'Windows LLDB'
     displayName: 'Download LLDB'
-
-  - task: CopyFiles@2
-    inputs:
-      sourceFolder: '$(System.ArtifactsDirectory)/Windows LLDB'
-      targetFolder: '$(System.ArtifactsDirectory)/lldb-windows'
-      contents: '**/*'
 
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-gnu
