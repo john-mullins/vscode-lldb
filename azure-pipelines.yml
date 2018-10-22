@@ -22,7 +22,7 @@ jobs:
       buildVersionToDownload: specific
       buildId: $(lldbBuildId)
       downloadType: single
-      artifactName: 'Linux LLDB'
+      artifactName: 'lldb-linux'
     displayName: 'Download LLDB'
 
   - script: |
@@ -35,7 +35,7 @@ jobs:
       export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-linux
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
       export ADAPTER_LOG=/tmp/lldb.log
-      env
+      chmod +x $LLDB_ROOT/bin/*
       npm run build
       npm run test
     displayName: 'Build+Test'
@@ -69,7 +69,7 @@ jobs:
       buildVersionToDownload: specific
       buildId: $(lldbBuildId)
       downloadType: single
-      artifactName: 'OSX LLDB'
+      artifactName: 'lldb-osx'
     displayName: 'Download LLDB'
 
   - script: |
@@ -81,7 +81,7 @@ jobs:
       export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-osx
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
       export ADAPTER_LOG=/tmp/lldb.log
-      env
+      chmod +x $LLDB_ROOT/bin/*
       npm run build
       npm run test
     displayName: 'Build+Test'
@@ -121,7 +121,7 @@ jobs:
       buildVersionToDownload: specific
       buildId: $(lldbBuildId)
       downloadType: single
-      artifactName: 'Windows LLDB'
+      artifactName: 'lldb-windows'
     displayName: 'Download LLDB'
 
   - script: |
@@ -135,7 +135,6 @@ jobs:
       set ADAPTER_LOG=%TEMP%\lldb.log
       set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
       set PYTHONPATH=%PYTHONHOME%\Lib;%PYTHONHOME%\DLLs
-      set
       npm run build
       npm run test
     displayName: 'Build+Test'
