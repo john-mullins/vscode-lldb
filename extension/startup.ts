@@ -43,28 +43,28 @@ export async function startDebugAdapter(
     params: Dict<any>
 ): Promise<AdapterProcess> {
     let config = workspace.getConfiguration('lldb', folder ? folder.uri : undefined);
-    let paramsBase64 = getAdapterParameters(config, params);
-    var args: string[];
-    let lldbPath: string;
-    let lldbEnv = config.get('executable_env', {});
+    var adapterArgs: string[];
+    let adapterExe: string;
+    let adapterEnv = config.get('executable_env', {});
     if (!config.get('useCodeLLDB', false)) {
-        let adapterPath = path.join(context.extensionPath, 'adapter');
-        args = ['-b',
-            '-O', format('command script import \'%s\'', adapterPath),
+        let paramsBase64 = getAdapterParameters(config, params);
+        adapterArgs = ['-b',
+            '-O', format('command script import \'%s\'', path.join(context.extensionPath, 'adapter')),
             '-O', format('script adapter.run_tcp_session(0, \'%s\')', paramsBase64)
         ];
-        lldbPath = config.get('executable', 'lldb');
+        adapterExe = util.getConfigNoDefault(config, 'executable') ||
+            path.join(context.extensionPath, 'out/lldb/bin/lldb');
     } else {
-        args = [];
-        lldbPath =  path.join(context.extensionPath, 'out/adapter2/codelldb');
+        adapterArgs = ["--liblldb=" + path.join(context.extensionPath, 'out/lldb/lib/liblldb.so')];
+        adapterExe = path.join(context.extensionPath, 'out/adapter2/codelldb');
     }
-    let lldb = spawnDebugger(args, lldbPath, lldbEnv);
+    let adapter = spawnDebugger(adapterArgs, adapterExe, adapterEnv);
     let regex = new RegExp('^Listening on port (\\d+)\\s', 'm');
-    let match = await waitPattern(lldb, regex);
+    let match = await waitPattern(adapter, regex);
 
-    let adapter = new AdapterProcess(lldb);
-    adapter.port = parseInt(match[1]);
-    return adapter;
+    let adapterProc = new AdapterProcess(adapter);
+    adapterProc.port = parseInt(match[1]);
+    return adapterProc;
 }
 
 function setIfDefined(target: Dict<any>, config: WorkspaceConfiguration, key: string) {
@@ -107,9 +107,9 @@ export async function diagnose(): Promise<boolean> {
         let pattern = new RegExp(versionPattern, 'm');
 
         let config = workspace.getConfiguration('lldb', null);
-        let lldbPathOrginal = config.get('executable', 'lldb');
-        let lldbPath = lldbPathOrginal;
-        let lldbEnv = config.get('executable_env', {});
+        let adapterPathOrginal = config.get('executable', 'lldb');
+        let adapterPath = adapterPathOrginal;
+        let adapterEnv = config.get('executable_env', {});
 
         // Try to locate LLDB and get its version.
         var version: string = null;
@@ -121,14 +121,14 @@ export async function diagnose(): Promise<boolean> {
         } else {
             lldbNames = ['lldb'];
         }
-        if (lldbPathOrginal != 'lldb') {
-            lldbNames.unshift(lldbPathOrginal); // Also try the explicitly configured value.
+        if (adapterPathOrginal != 'lldb') {
+            lldbNames.unshift(adapterPathOrginal); // Also try the explicitly configured value.
         }
         for (var name of lldbNames) {
             try {
-                let lldb = spawnDebugger(['-v'], name, lldbEnv);
+                let lldb = spawnDebugger(['-v'], name, adapterEnv);
                 version = (await waitPattern(lldb, pattern))[1];
-                lldbPath = name;
+                adapterPath = name;
                 break;
             } catch (err) {
                 output.appendLine(inspect(err));
@@ -152,24 +152,24 @@ export async function diagnose(): Promise<boolean> {
                 '-O', 'script import sys, io, lldb',
                 '-O', 'script print(lldb.SBDebugger.Create().IsValid())',
                 '-O', 'script print("OK")'
-            ], lldbPath, lldbEnv);
+            ], adapterPath, adapterEnv);
             // [^] = match any char, including newline
             let match2 = await waitPattern(lldb2, new RegExp('^True$[^]*^OK$', 'm'));
         }
         output.appendLine('--- Done ---');
         output.show(true);
 
-        // If we updated lldbPath, ask user what to do.
-        if (lldbPathOrginal != lldbPath) {
+        // If we updated adapterPath, ask user what to do.
+        if (adapterPathOrginal != adapterPath) {
             let action = await window.showInformationMessage(
                 format('Could not launch LLDB executable "%s", ' +
                     'however we did locate a usable LLDB binary: "%s". ' +
                     'Would you like to update LLDB configuration with this value?',
-                    lldbPathOrginal, lldbPath),
+                    adapterPathOrginal, adapterPath),
                 'Yes', 'No');
             if (action == 'Yes') {
-                output.appendLine('Setting "lldb.executable": "' + lldbPath + '".');
-                config.update('executable', lldbPath, ConfigurationTarget.Global);
+                output.appendLine('Setting "lldb.executable": "' + adapterPath + '".');
+                config.update('executable', adapterPath, ConfigurationTarget.Global);
             } else {
                 status = DiagnosticsStatus.Failed;
             }
@@ -202,10 +202,10 @@ export async function diagnose(): Promise<boolean> {
 
 // Spawn LLDB with the specified arguments, wait for it to output something matching
 // regex pattern, or until the timeout expires.
-function spawnDebugger(args: string[], lldbPath: string, lldbEnv: Dict<string>): cp.ChildProcess {
+function spawnDebugger(args: string[], adapterPath: string, adapterEnv: Dict<string>): cp.ChildProcess {
     let env = Object.assign({}, process.env);
-    for (var key in lldbEnv) {
-        env[key] = util.expandVariables(lldbEnv[key], (type, key) => {
+    for (var key in adapterEnv) {
+        env[key] = util.expandVariables(adapterEnv[key], (type, key) => {
             if (type == 'env') return process.env[key];
             throw new Error('Unknown variable type ' + type);
         });
@@ -221,7 +221,7 @@ function spawnDebugger(args: string[], lldbPath: string, lldbEnv: Dict<string>):
         // https://github.com/Homebrew/legacy-homebrew/issues/47201
         options.env['PATH'] = '/usr/bin:' + process.env['PATH'];
     }
-    return cp.spawn(lldbPath, args, options);
+    return cp.spawn(adapterPath, args, options);
 }
 
 async function waitPattern(lldb: cp.ChildProcess, pattern: RegExp, timeout_millis = 5000) {

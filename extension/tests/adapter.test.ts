@@ -4,13 +4,11 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as cp from 'child_process';
 import * as fs from 'fs';
-import * as net from 'net';
 import { DebugClient } from 'vscode-debugadapter-testsupport';
 import { DebugProtocol as dp } from 'vscode-debugprotocol';
 import { format, promisify, inspect } from 'util';
 
 import * as util from '../util';
-import { networkInterfaces } from 'os';
 
 const projectDir = path.join(__dirname, '..', '..');
 
@@ -93,12 +91,12 @@ suite('Adapter tests', () => {
             await setBreakpointAsyncSource;
             await setBreakpointAsyncHeader;
 
-            let stopEvent = await waitForStopAsync;
+            let stopEvent = await withTimeout(1000, waitForStopAsync);
             await verifyLocation(stopEvent.body.threadId, debuggeeSource, bpLineSource);
 
             let waitForStopAsync2 = waitForStopEvent();
             await dc.continueRequest({ threadId: 0 });
-            let stopEvent2 = await waitForStopAsync2;
+            let stopEvent2 = await withTimeout(1000, waitForStopAsync2);
             await verifyLocation(stopEvent.body.threadId, debuggeeHeader, bpLineHeader);
 
             await dc.continueRequest({ threadId: 0 });
@@ -111,7 +109,7 @@ suite('Adapter tests', () => {
             let waitForStopAsync = waitForStopEvent();
             await launch({ name: 'page stack', program: debuggee, args: ['deepstack'] });
             await setBreakpointAsync;
-            let stoppedEvent = await waitForStopAsync;
+            let stoppedEvent = await withTimeout(1000, waitForStopAsync);
             let response2 = await dc.stackTraceRequest({ threadId: stoppedEvent.body.threadId, startFrame: 20, levels: 10 });
             assert.equal(response2.body.stackFrames.length, 10)
             let response3 = await dc.scopesRequest({ frameId: response2.body.stackFrames[0].id });
@@ -127,7 +125,7 @@ suite('Adapter tests', () => {
             await verifyLocation(stoppedEvent.body.threadId, debuggeeSource, bpLine);
             let frameId = await getTopFrameId(stoppedEvent.body.threadId);
             let localsRef = await getFrameLocalsRef(frameId);
-            compareVariables(localsRef, {
+            await compareVariables(localsRef, {
                 a: 30,
                 b: 40,
                 array_int: {
@@ -152,7 +150,7 @@ suite('Adapter tests', () => {
                 expression: 'vec_int', context: 'watch', frameId: frameId
             });
             if (process.platform != 'win32') {
-                compareVariables(response1.body.variablesReference, {
+                await compareVariables(response1.body.variablesReference, {
                     '[0]': { '[0]': 0, '[1]': 0, '[2]': 0, '[3]': 0, '[4]': 0 },
                     '[9]': { '[0]': 0, '[1]': 0, '[2]': 0, '[3]': 0, '[4]': 0 },
                     '[raw]': null
@@ -167,7 +165,7 @@ suite('Adapter tests', () => {
 
             // Set a variable and check that it has actually changed.
             await dc.send('setVariable', { variablesReference: localsRef, name: 'a', value: '100' });
-            compareVariables(localsRef, { a: 100 });
+            await compareVariables(localsRef, { a: 100 });
         });
 
         test('expressions', async () => {
@@ -188,14 +186,14 @@ suite('Adapter tests', () => {
             for (var i = 1; i < 10; ++i) {
                 let waitForStopAsync = waitForStopEvent();
                 await dc.continueRequest({ threadId: 0 });
-                let stoppedEvent = await waitForStopAsync;
+                let stoppedEvent = await withTimeout(1000, waitForStopAsync);
                 let frameId = await getTopFrameId(stoppedEvent.body.threadId);
 
                 let response1 = await dc.evaluateRequest({ expression: "s1.d", frameId: frameId, context: "watch" });
                 let response2 = await dc.evaluateRequest({ expression: "s2.d", frameId: frameId, context: "watch" });
 
-                compareVariables(response1.body.variablesReference, { '[0]': i, '[1]': i, '[2]': i, '[3]': i });
-                compareVariables(response2.body.variablesReference, { '[0]': i * 10, '[1]': i * 10, '[2]': i * 10, '[3]': i * 10 });
+                await compareVariables(response1.body.variablesReference, { '[0]': i, '[1]': i, '[2]': i, '[3]': i });
+                await compareVariables(response2.body.variablesReference, { '[0]': i * 10, '[1]': i * 10, '[2]': i * 10, '[3]': i * 10 });
             }
         });
 
@@ -206,7 +204,7 @@ suite('Adapter tests', () => {
             let stoppedEvent = await launchAndWaitForStop({ name: 'conditional breakpoint 1', program: debuggee, args: ['vars'] });
             let frameId = await getTopFrameId(stoppedEvent.body.threadId);
             let localsRef = await getFrameLocalsRef(frameId);
-            compareVariables(localsRef, { i: 5 });
+            await compareVariables(localsRef, { i: 5 });
         });
 
         test('conditional breakpoint 2', async () => {
@@ -216,7 +214,7 @@ suite('Adapter tests', () => {
             let stoppedEvent = await launchAndWaitForStop({ name: 'conditional breakpoint 2', program: debuggee, args: ['vars'] });
             let frameId = await getTopFrameId(stoppedEvent.body.threadId);
             let localsRef = await getFrameLocalsRef(frameId);
-            compareVariables(localsRef, { i: 5 });
+            await compareVariables(localsRef, { i: 5 });
         });
 
         test('disassembly', async () => {
@@ -237,7 +235,7 @@ suite('Adapter tests', () => {
             });
             let waitStoppedEvent2 = waitForStopEvent();
             await dc.continueRequest({ threadId: stoppedEvent.body.threadId });
-            let stoppedEvent2 = await waitStoppedEvent2;
+            let stoppedEvent2 = await withTimeout(1000, waitStoppedEvent2);
             let stackTrace2 = await dc.stackTraceRequest({
                 threadId: stoppedEvent2.body.threadId,
                 startFrame: 0, levels: 5
@@ -306,27 +304,27 @@ suite('Adapter tests', () => {
             let scopes = await dc.scopesRequest({ frameId: frames.body.stackFrames[0].id });
 
             let foo_bar = (process.platform != 'win32') ? '"foo/bar"' : '"foo\\bar"';
-            compareVariables(scopes.body.scopes[0].variablesReference, {
+            await compareVariables(scopes.body.scopes[0].variablesReference, {
                 int: 17,
                 float: 3.14159274,
                 tuple: '(1, "a", 42)',
                 tuple_ref: '(1, "a", 42)',
                 // LLDB does not handle Rust enums well for now
-                // 'reg_enum1': 'A',
-                // 'reg_enum2': 'B(100, 200)',
-                reg_enum3: 'C{x:11.35, y:20.5}',
-                reg_enum_ref: 'C{x:11.35, y:20.5}',
-                cstyle_enum1: 'A',
-                cstyle_enum2: 'B',
-                enc_enum1: 'Some("string")',
-                enc_enum2: 'Nothing',
-                opt_str1: 'Some("string")',
-                opt_str2: 'None',
+                // reg_enum1: 'A',
+                // reg_enum2: 'B(100, 200)',
+                // reg_enum3: 'C{x:11.35, y:20.5}',
+                // reg_enum_ref: 'C{x:11.35, y:20.5}',
+                // cstyle_enum1: 'A',
+                // cstyle_enum2: 'B',
+                // enc_enum1: 'Some("string")',
+                // enc_enum2: 'Nothing',
+                // opt_str1: 'Some("string")',
+                // opt_str2: 'None',
                 tuple_struct: '(3, "xxx", -3)',
                 reg_struct: '{a:1, c:12}',
                 reg_struct_ref: '{a:1, c:12}',
-                opt_reg_struct1: 'Some({...})',
-                opt_reg_struct2: 'None',
+                // opt_reg_struct1: 'Some({...})',
+                // opt_reg_struct2: 'None',
                 array: { '[0]': 1, '[1]': 2, '[2]': 3, '[3]': 4, '[4]': 5 },
                 slice: '(5) &[1, 2, 3, 4, 5]',
                 vec_int: {
@@ -376,13 +374,13 @@ suite('Adapter tests', () => {
                 expression: 'vec_str', context: 'watch',
                 frameId: frames.body.stackFrames[0].id
             });
-            compareVariables(response1.body.variablesReference, { '[0]': '"111"', '[4]': '"5555"' });
+            await compareVariables(response1.body.variablesReference, { '[0]': '"111"', '[4]': '"5555"' });
 
             let response2 = await dc.evaluateRequest({
                 expression: 'string', context: 'watch',
                 frameId: frames.body.stackFrames[0].id
             });
-            compareVariables(response2.body.variablesReference, { '[0]': "'A'", '[7]': "'g'" });
+            await compareVariables(response2.body.variablesReference, { '[0]': "'A'", '[7]': "'g'" });
         });
     });
 });
@@ -398,13 +396,15 @@ async function startDebugAdapter(): Promise<number> {
         if (process.env.ADAPTER_LOG) {
             adapterLog = await openFileAsync(process.env.ADAPTER_LOG, 'w');
         }
-        adapter = cp.spawn('out/adapter2/codelldb', [], {
+        let codelldb = path.join(extensionRoot, 'out/adapter2/codelldb');
+        let args = ["--liblldb=" + path.join(extensionRoot, 'out/lldb/lib/liblldb.so')];
+        adapter = cp.spawn(codelldb, args, {
             stdio: ['ignore', 'pipe', adapterLog],
             cwd: extensionRoot,
             env: Object.assign({ RUST_LOG: 'error,codelldb=debug' }, process.env)
         });
     } else {
-        var lldb = 'lldb';
+        var lldb = path.join(extensionRoot, 'out/lldb/bin/lldb');
         if (process.env.LLDB_EXECUTABLE) {
             lldb = process.env.LLDB_EXECUTABLE;
         }
@@ -534,7 +534,7 @@ async function compareVariables(varRef: number, expected: any, prefix: string = 
                 assert.equal(variable.value, summary,
                     format('Summary of "%s", expected: "%s", actual: "%s"', keyPath, summary, variable.value));
             }
-            compareVariables(variable.variablesReference, expectedValue, keyPath);
+            await compareVariables(variable.variablesReference, expectedValue, keyPath);
         } else {
             assert.ok(false, 'Unreachable');
         }
@@ -571,4 +571,18 @@ async function getFrameLocalsRef(frameId: number): Promise<number> {
     let scopes = await dc.scopesRequest({ frameId: frameId });
     let localsRef = scopes.body.scopes[0].variablesReference;
     return localsRef;
+}
+
+function withTimeout<T>(timeoutMillis: number, promise: Promise<T>): Promise<T> {
+    let error = new Error('Timed out');
+    return new Promise<T>((resolve, reject) => {
+        let timer = setTimeout(() => {
+            (<any>error).code = 'Timeout';
+            reject(error);
+        }, timeoutMillis);
+        promise.then(result => {
+            clearTimeout(timer);
+            resolve(result);
+        });
+    });
 }
