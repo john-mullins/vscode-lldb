@@ -103,6 +103,8 @@ jobs:
 
   - script: |
       which lldb
+      which lldb-server
+      which debugserver
       ls -R $XCODE_10_DEVELOPER_DIR
     displayName: 'Info'
 
