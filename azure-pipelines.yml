@@ -1,6 +1,21 @@
 variables:
   lldbBuildId: 162
 
+  setenvLinux: |
+      export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-linux
+      export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
+      export ADAPTER_LOG=/tmp/adapter.log
+  setenvOSX: |
+      export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-osx
+      export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
+      export ADAPTER_LOG=/tmp/adapter.log
+  setenvWindows: |
+      set LLDB_ROOT=$(System.ArtifactsDirectory)\lldb-windows
+      set PATH=%USERPROFILE%\.cargo\bin;%LLDB_ROOT%\bin;%PATH%
+      set ADAPTER_LOG=%TEMP%\adapter.log
+      set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
+      set PYTHONPATH=%PYTHONHOME%\Lib;%PYTHONHOME%\DLLs
+
 ##########################################
 
 jobs:
@@ -32,9 +47,7 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-linux
-      export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
-      export ADAPTER_LOG=/tmp/adapter.log
+      $(setenvLinux)
       chmod +x $LLDB_ROOT/bin/*
       npm run build
       npm run test:adapter2
@@ -83,9 +96,7 @@ jobs:
     displayName: 'Info'
 
   - script: |
-      export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-osx
-      export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
-      export ADAPTER_LOG=/tmp/adapter.log
+      $(setenvOSX)
       chmod +x $LLDB_ROOT/bin/*
       npm run build
       npm run test:adapter2
@@ -135,11 +146,7 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      set LLDB_ROOT=$(System.ArtifactsDirectory)\lldb-windows
-      set PATH=%USERPROFILE%\.cargo\bin;%LLDB_ROOT%\bin;%PATH%
-      set ADAPTER_LOG=%TEMP%\adapter.log
-      set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
-      set PYTHONPATH=%PYTHONHOME%\Lib;%PYTHONHOME%\DLLs
+      $(setenvWindows)
       npm run build
       npm run test:adapter2
     displayName: 'Build+Test'
