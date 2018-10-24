@@ -50,8 +50,19 @@ jobs:
       $(setenvLinux)
       chmod +x $LLDB_ROOT/bin/*
       npm run build
+    displayName: 'Build'
+
+  - script: |
+      $(setenvLinux)
+      npm run test:adapter
+    displayName: 'Test1'
+    condition: always()
+
+  - script: |
+      $(setenvLinux)
       npm run test:adapter2
-    displayName: 'Build+Test'
+    displayName: 'Test2'
+    condition: always()
 
   - script: |
       cat /tmp/adapter.log
@@ -99,8 +110,19 @@ jobs:
       $(setenvOSX)
       chmod +x $LLDB_ROOT/bin/*
       npm run build
+    displayName: 'Build'
+
+  - script: |
+      $(setenvOSX)
+      npm run test:adapter
+    displayName: 'Test1'
+    condition: always()
+
+  - script: |
+      $(setenvOSX)
       npm run test:adapter2
-    displayName: 'Build+Test'
+    displayName: 'Test2'
+    condition: always()
 
   - script: |
       cat /tmp/adapter.log
@@ -148,8 +170,19 @@ jobs:
   - script: |
       $(setenvWindows)
       npm run build
+    displayName: 'Build'
+
+  - script: |
+      $(setenvWindows)
+      npm run test:adapter
+    displayName: 'Test1'
+    condition: always()
+
+  - script: |
+      $(setenvWindows)
       npm run test:adapter2
-    displayName: 'Build+Test'
+    displayName: 'Test2'
+    condition: always()
 
   - script: |
       type %TEMP%\adapter.log
