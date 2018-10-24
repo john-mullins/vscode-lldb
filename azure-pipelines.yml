@@ -37,7 +37,7 @@ jobs:
       export ADAPTER_LOG=/tmp/adapter.log
       chmod +x $LLDB_ROOT/bin/*
       npm run build
-      npm run test
+      npm run test:adapter2
     displayName: 'Build+Test'
 
   - script: |
@@ -78,12 +78,17 @@ jobs:
     displayName: 'Setup'
 
   - script: |
+      which lldb
+      ls -R $XCODE_10_DEVELOPER_DIR
+    displayName: 'Info'
+
+  - script: |
       export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-osx
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
       export ADAPTER_LOG=/tmp/adapter.log
       chmod +x $LLDB_ROOT/bin/*
       npm run build
-      npm run test
+      npm run test:adapter2
     displayName: 'Build+Test'
 
   - script: |
@@ -136,7 +141,7 @@ jobs:
       set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
       set PYTHONPATH=%PYTHONHOME%\Lib;%PYTHONHOME%\DLLs
       npm run build
-      npm run test
+      npm run test:adapter2
     displayName: 'Build+Test'
 
   - script: |
@@ -144,6 +149,10 @@ jobs:
       echo - env ------------------
       set
       echo - dir -----------------------
-      dir /s %AGENT_BUILDDIRECTORY%
+      dir /s $(System.ArtifactsDirectory)
+      echo -----------------------------
+      env
+      echo -----------------------------
+      ls -R $(System.ArtifactsDirectory)
     displayName: 'On Failure'
     condition: failed()
