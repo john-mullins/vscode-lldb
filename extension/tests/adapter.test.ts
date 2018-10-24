@@ -1,5 +1,3 @@
-'use strict'
-
 import * as assert from 'assert';
 import * as path from 'path';
 import * as cp from 'child_process';
@@ -23,9 +21,13 @@ const sleepAsync = promisify(setTimeout);
 const openFileAsync = promisify(fs.open);
 
 var dc = new DebugClient('', '', 'lldb');
+var testId = 0;
 
 suite('Adapter tests', () => {
 
+    suiteSetup(async () => {
+        await new Promise(resolve => fs.unlink(getAdapterLogFileName(), resolve));
+    });
     suiteTeardown(() => {
         dc.stop();
     });
@@ -35,7 +37,8 @@ suite('Adapter tests', () => {
         if (process.env.DEBUG_SERVER) {
             port = parseInt(process.env.DEBUG_SERVER)
         } else {
-            port = await startDebugAdapter();
+            ++testId;
+            port = await startDebugAdapter(testId.toString());
         }
         //console.log('Debug server port:', port)
         dc.start(port);
@@ -387,19 +390,31 @@ suite('Adapter tests', () => {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function startDebugAdapter(): Promise<number> {
+function getAdapterLogFileName(): string {
+    if (process.env.ADAPTER_LOG)
+        return process.env.ADAPTER_LOG;
+    else if (process.env.USE_CODELLDB)
+        return 'adapter2.test.log';
+    else
+        return 'adapter.test.log';
+}
+
+async function startDebugAdapter(title: string): Promise<number> {
     let extensionRoot = path.join(__dirname, '..', '..');
+
+    var adapterLog = getAdapterLogFileName();
+
+    let log = fs.createWriteStream(adapterLog, { flags: 'a' });
+    await new Promise(resolve => log.write(format('---------- %s\n', title), resolve));
+    log.close();
 
     var adapter: cp.ChildProcess;
     if (process.env.USE_CODELLDB) {
-        var adapterLog = 2;
-        if (process.env.ADAPTER_LOG) {
-            adapterLog = await openFileAsync(process.env.ADAPTER_LOG, 'w');
-        }
+        let stderr = await openFileAsync(adapterLog, 'a');
         let codelldb = path.join(extensionRoot, 'out/adapter2/codelldb');
         let args = ["--liblldb=" + path.join(extensionRoot, 'out/lldb/lib/liblldb.so')];
         adapter = cp.spawn(codelldb, args, {
-            stdio: ['ignore', 'pipe', adapterLog],
+            stdio: ['ignore', 'pipe', stderr],
             cwd: extensionRoot,
             env: Object.assign({ RUST_LOG: 'error,codelldb=debug' }, process.env)
         });
@@ -408,13 +423,10 @@ async function startDebugAdapter(): Promise<number> {
         if (process.env.LLDB_EXECUTABLE) {
             lldb = process.env.LLDB_EXECUTABLE;
         }
-        var params: any = { logLevel: 40 };
-        if (process.env.ADAPTER_LOG) {
-            params = {
-                logLevel: 0,
-                logFile: process.env.ADAPTER_LOG
-            };
-        }
+        var params = {
+            logLevel: 0,
+            logFile: adapterLog
+        };
         let args = ['-b', '-Q',
             '-O', format('command script import \'%s\'', path.join(extensionRoot, 'adapter')),
             '-O', format('script adapter.run_tcp_session(0 ,\'%s\')', new Buffer(JSON.stringify(params)).toString('base64'))

@@ -34,14 +34,14 @@ jobs:
   - script: |
       export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-linux
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
-      export ADAPTER_LOG=/tmp/lldb.log
+      export ADAPTER_LOG=/tmp/adapter.log
       chmod +x $LLDB_ROOT/bin/*
       npm run build
       npm run test
     displayName: 'Build+Test'
 
   - script: |
-      cat /tmp/lldb.log
+      cat /tmp/adapter.log
       echo - env ------------------
       env
       echo - dir -----------------------
@@ -80,14 +80,14 @@ jobs:
   - script: |
       export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-osx
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
-      export ADAPTER_LOG=/tmp/lldb.log
+      export ADAPTER_LOG=/tmp/adapter.log
       chmod +x $LLDB_ROOT/bin/*
       npm run build
       npm run test
     displayName: 'Build+Test'
 
   - script: |
-      cat /tmp/lldb.log
+      cat /tmp/adapter.log
       echo - env ------------------
       env
       echo - dir -----------------------
@@ -132,7 +132,7 @@ jobs:
   - script: |
       set LLDB_ROOT=$(System.ArtifactsDirectory)\lldb-windows
       set PATH=%USERPROFILE%\.cargo\bin;%LLDB_ROOT%\bin;%PATH%
-      set ADAPTER_LOG=%TEMP%\lldb.log
+      set ADAPTER_LOG=%TEMP%\adapter.log
       set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
       set PYTHONPATH=%PYTHONHOME%\Lib;%PYTHONHOME%\DLLs
       npm run build
@@ -140,7 +140,7 @@ jobs:
     displayName: 'Build+Test'
 
   - script: |
-      type %TEMP%\lldb.log
+      type %TEMP%\adapter.log
       echo - env ------------------
       set
       echo - dir -----------------------

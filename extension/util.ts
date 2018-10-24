@@ -163,7 +163,7 @@ export function waitForPattern(
     process: cp.ChildProcess,
     channel: stream.Readable,
     pattern: RegExp,
-    timeout_millis = 5000
+    timeoutMillis = 5000
 ) {
     return new Promise<RegExpExecArray>((resolve, reject) => {
         var promisePending = true;
@@ -197,7 +197,7 @@ export function waitForPattern(
                 promisePending = false;
                 reject(err);
             }
-        }, timeout_millis);
+        }, timeoutMillis);
         // Premature exit.
         process.on('exit', (code, signal) => {
             if (promisePending) {
