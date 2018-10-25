@@ -4,15 +4,12 @@ variables:
   setenvLinux: |
       export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-linux
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
-      export ADAPTER_LOG=/tmp/adapter.log
   setenvOSX: |
       export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-osx
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
-      export ADAPTER_LOG=/tmp/adapter.log
   setenvWindows: |
       set LLDB_ROOT=$(System.ArtifactsDirectory)\lldb-windows
       set PATH=%USERPROFILE%\.cargo\bin;%LLDB_ROOT%\bin;%PATH%
-      set ADAPTER_LOG=%TEMP%\adapter.log
       set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
       set PYTHONPATH=%PYTHONHOME%\Lib;%PYTHONHOME%\DLLs
 
@@ -54,18 +51,22 @@ jobs:
 
   - script: |
       $(setenvLinux)
+      export ADAPTER_LOG=/tmp/adapter.test.log
       npm run test:adapter
     displayName: 'Test1'
     condition: always()
 
   - script: |
       $(setenvLinux)
+      export ADAPTER_LOG=/tmp/adapter2.test.log
       npm run test:adapter2
     displayName: 'Test2'
     condition: always()
 
   - script: |
-      cat /tmp/adapter.log
+      cat /tmp/adapter.test.log
+      echo ------------------------
+      cat /tmp/adapter2.test.log
       echo - env ------------------
       env
       echo - dir -----------------------
@@ -115,18 +116,22 @@ jobs:
 
   - script: |
       $(setenvOSX)
+      export ADAPTER_LOG=/tmp/adapter.test.log
       npm run test:adapter
     displayName: 'Test1'
     condition: always()
 
   - script: |
       $(setenvOSX)
+      export ADAPTER_LOG=/tmp/adapter2.test.log
       npm run test:adapter2
     displayName: 'Test2'
     condition: always()
 
   - script: |
-      cat /tmp/adapter.log
+      cat /tmp/adapter.test.log
+      echo ------------------------
+      cat /tmp/adapter2.test.log
       echo - env ------------------
       env
       echo - dir -----------------------
@@ -164,7 +169,7 @@ jobs:
     displayName: 'Download LLDB'
 
   - script: |
-      curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-gnu
+      curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-msvc
       npm install
     displayName: 'Setup'
 
@@ -175,18 +180,22 @@ jobs:
 
   - script: |
       $(setenvWindows)
+      set ADAPTER_LOG=%TEMP%\adapter.test.log
       npm run test:adapter
     displayName: 'Test1'
     condition: always()
 
   - script: |
       $(setenvWindows)
+      set ADAPTER_LOG=%TEMP%\adapter2.test.log
       npm run test:adapter2
     displayName: 'Test2'
     condition: always()
 
   - script: |
-      type %TEMP%\adapter.log
+      type %TEMP%\adapter.test.log
+      echo ------------------------
+      type %TEMP%\adapter2.test.log
       echo - env ------------------
       set
       echo - dir -----------------------
