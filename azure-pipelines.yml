@@ -101,13 +101,14 @@ jobs:
       npm install
     displayName: 'Setup'
 
-  - script: |
-      ls -l `which lldb`
-      find / -name debugserver
-    displayName: 'Info'
+  # - script: |
+  #     ls -l `which lldb`
+  #     find / -name debugserver
+  #   displayName: 'Info'
 
   - script: |
       $(setenvOSX)
+      cp $XCODE_10_DEVELOPER_DIR/../SharedFrameworks/LLDB.framework/Versions/A/Resources/debugserver $LLDB_ROOT/bin
       chmod +x $LLDB_ROOT/bin/*
       npm run build
     displayName: 'Build'
