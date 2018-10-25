@@ -43,28 +43,26 @@ def main():
         copy_if_newer(build_dir + '/codelldb', adapter2_dir)
         copy_if_newer(build_dir + '/libcodelldb.dylib', adapter2_dir)
 
-        copy_if_newer(lldb_root + '/bin/lldb', adapter2_dir)
-        copy_if_newer(lldb_root + '/lib/liblldb.dylib', adapter2_dir)
+        copy_if_newer(lldb_root + '/bin/lldb', lldb_dir + '/bin')
+        copy_if_newer(lldb_root + '/lib/liblldb.dylib', lldb_dir + '/lib')
 
-        target_site_packages = adapter2_dir + '/python2.7/site-packages'
-        if not os.path.isdir(target_site_packages):
-            shutil.copytree(lldb_root + '/lib/python2.7/site-packages', target_site_packages,
-                ignore=shutil.ignore_patterns('_lldb.*'))
+        copy_tree_if_newer(lldb_root + '/lib/python2.7/site-packages',
+                           lldb_dir + '/lib/python2.7/site-packages',
+                           ignore=['_lldb.*'])
 
     elif sys.platform.startswith('win32'):
         copy_if_newer(build_dir + '/codelldb.exe', adapter2_dir)
         copy_if_newer(build_dir + '/codelldb.dll', adapter2_dir)
 
-        copy_if_newer(lldb_root + '/bin/lldb.exe', adapter2_dir)
-        copy_if_newer(lldb_root + '/bin/lldb.pdb', adapter2_dir)
+        copy_if_newer(lldb_root + '/bin/lldb.exe', lldb_dir + '/bin')
+        #copy_if_newer(lldb_root + '/bin/lldb.pdb', lldb_dir + '/bin')
 
-        copy_if_newer(lldb_root + '/bin/liblldb.dll', adapter2_dir)
-        copy_if_newer(lldb_root + '/bin/liblldb.pdb', adapter2_dir)
+        copy_if_newer(lldb_root + '/bin/liblldb.dll', lldb_dir + '/bin')
+        #copy_if_newer(lldb_root + '/bin/liblldb.pdb', lldb_dir + '/bin')
 
-        target_site_packages = adapter2_dir + '/../lib/site-packages'
-        if not os.path.isdir(target_site_packages):
-            shutil.copytree(lldb_root +  + '/lib/site-packages', target_site_packages,
-                ignore=shutil.ignore_patterns('_lldb.*'))
+        copy_tree_if_newer(lldb_root + '/lib/site-packages',
+                           lldb_dir + '/lib/site-packages',
+                           ignore=['_lldb.*'])
     else:
         assert False
 

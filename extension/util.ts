@@ -25,7 +25,7 @@ export function expandVariablesInObject(obj: any, expander: (type: string, key: 
     if (obj instanceof Array)
         return obj.map(v => expandVariablesInObject(v, expander));
 
-    for (var prop of Object.keys(obj))
+    for (let prop of Object.keys(obj))
         obj[prop] = expandVariablesInObject(obj[prop], expander)
     return obj;
 }
@@ -35,8 +35,8 @@ export function expandDbgConfig(launchConfig: DebugConfiguration, dbgconfigConfi
     let dbgconfig: Dict<any> = Object.assign({}, dbgconfigConfig);
 
     // Compute fixed-point of expansion of dbgconfig properties.
-    var expanding = '';
-    var converged = true;
+    let expanding = '';
+    let converged = true;
     let expander = (type: string, key: string) => {
         if (type == 'dbgconfig') {
             if (key == expanding)
@@ -51,7 +51,7 @@ export function expandDbgConfig(launchConfig: DebugConfiguration, dbgconfigConfi
     };
     do {
         converged = true;
-        for (var prop of Object.keys(dbgconfig)) {
+        for (let prop of Object.keys(dbgconfig)) {
             expanding = prop;
             dbgconfig[prop] = expandVariablesInObject(dbgconfig[prop], expander);
         }
@@ -74,7 +74,7 @@ export async function getProcessList(currentUserOnly: boolean):
     Promise<(QuickPickItem & { pid: number })[]> {
 
     let is_windows = process.platform == 'win32';
-    var command: string;
+    let command: string;
     if (!is_windows) {
         if (currentUserOnly)
             command = 'ps x';
@@ -95,7 +95,7 @@ export async function getProcessList(currentUserOnly: boolean):
     let lines = stdout.split('\n');
     let items = [];
 
-    var re: RegExp, idx: number[];
+    let re: RegExp, idx: number[];
     if (!is_windows) {
         re = /^\s*(\d+)\s+.*?\s+.*?\s+.*?\s+(.*)()$/;
         idx = [1, 2, 3];
@@ -104,7 +104,7 @@ export async function getProcessList(currentUserOnly: boolean):
         re = /^"([^"]*)","([^"]*)",(?:"[^"]*",){6}"([^"]*)"/;
         idx = [2, 1, 3];
     }
-    for (var i = 1; i < lines.length; ++i) {
+    for (let i = 1; i < lines.length; ++i) {
         let groups = re.exec(lines[i]);
         if (groups) {
             let pid = parseInt(groups[idx[0]]);
@@ -119,7 +119,7 @@ export async function getProcessList(currentUserOnly: boolean):
 
 export function getConfigNoDefault(config: WorkspaceConfiguration, key: string): any {
     let x = config.inspect(key);
-    var value = x.workspaceFolderValue;
+    let value = x.workspaceFolderValue;
     if (value === undefined)
         value = x.workspaceValue;
     if (value === undefined)
@@ -166,8 +166,8 @@ export function waitForPattern(
     timeoutMillis = 5000
 ) {
     return new Promise<RegExpExecArray>((resolve, reject) => {
-        var promisePending = true;
-        var prcoessOutput = '';
+        let promisePending = true;
+        let prcoessOutput = '';
         // Wait for expected pattern in channel.
         channel.on('data', (chunk) => {
             let chunkStr = chunk.toString();

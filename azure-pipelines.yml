@@ -102,10 +102,8 @@ jobs:
     displayName: 'Setup'
 
   - script: |
-      which lldb
-      which lldb-server
-      which debugserver
-      ls -R $XCODE_10_DEVELOPER_DIR
+      ls -l `which lldb`
+      find / -name debugserver
     displayName: 'Info'
 
   - script: |

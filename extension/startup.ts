@@ -43,7 +43,7 @@ export async function startDebugAdapter(
     params: Dict<any>
 ): Promise<AdapterProcess> {
     let config = workspace.getConfiguration('lldb', folder ? folder.uri : undefined);
-    var adapterArgs: string[];
+    let adapterArgs: string[];
     let adapterExe: string;
     let adapterEnv = config.get('executable_env', {});
     if (!config.get('useCodeLLDB', false)) {
@@ -93,11 +93,11 @@ enum DiagnosticsStatus {
 
 export async function diagnose(): Promise<boolean> {
     output.clear();
-    var status = DiagnosticsStatus.Succeeded;
+    let status = DiagnosticsStatus.Succeeded;
     try {
         output.appendLine('--- Checking version ---');
-        var versionPattern = '^lldb version ([0-9.]+)';
-        var desiredVersion = '3.9.1';
+        let versionPattern = '^lldb version ([0-9.]+)';
+        let desiredVersion = '3.9.1';
         if (process.platform.includes('win32')) {
             desiredVersion = '4.0.0';
         } else if (process.platform.includes('darwin')) {
@@ -112,8 +112,8 @@ export async function diagnose(): Promise<boolean> {
         let adapterEnv = config.get('executable_env', {});
 
         // Try to locate LLDB and get its version.
-        var version: string = null;
-        var lldbNames: string[];
+        let version: string = null;
+        let lldbNames: string[];
         if (process.platform.includes('linux')) {
             // Linux tends to have versioned binaries only.
             lldbNames = ['lldb', 'lldb-10.0', 'lldb-9.0', 'lldb-8.0', 'lldb-7.0',
@@ -124,7 +124,7 @@ export async function diagnose(): Promise<boolean> {
         if (adapterPathOrginal != 'lldb') {
             lldbNames.unshift(adapterPathOrginal); // Also try the explicitly configured value.
         }
-        for (var name of lldbNames) {
+        for (let name of lldbNames) {
             try {
                 let lldb = spawnDebugger(['-v'], name, adapterEnv);
                 version = (await waitPattern(lldb, pattern))[1];
@@ -204,7 +204,7 @@ export async function diagnose(): Promise<boolean> {
 // regex pattern, or until the timeout expires.
 function spawnDebugger(args: string[], adapterPath: string, adapterEnv: Dict<string>): cp.ChildProcess {
     let env = Object.assign({}, process.env);
-    for (var key in adapterEnv) {
+    for (let key in adapterEnv) {
         env[key] = util.expandVariables(adapterEnv[key], (type, key) => {
             if (type == 'env') return process.env[key];
             throw new Error('Unknown variable type ' + type);
@@ -240,7 +240,7 @@ export async function analyzeStartupError(err: Error) {
     output.show(true)
     let e = <any>err;
     let diagnostics = 'Run diagnostics';
-    var actionAsync;
+    let actionAsync;
     if (e.code == 'ENOENT') {
         actionAsync = window.showErrorMessage(
             format('Could not start debugging because executable \'%s\' was not found.', e.path),

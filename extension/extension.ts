@@ -207,8 +207,8 @@ class Extension implements TextDocumentContentProvider, DebugConfigurationProvid
         let dbgconfig: Dict<any> = Object.assign({}, dbgconfigConfig);
 
         // Compute fixed-point of expansion of dbgconfig properties.
-        var expanding = '';
-        var converged = true;
+        let expanding = '';
+        let converged = true;
         let expander = (type: string, key: string) => {
             if (type == 'dbgconfig') {
                 if (key == expanding)
@@ -223,7 +223,7 @@ class Extension implements TextDocumentContentProvider, DebugConfigurationProvid
         };
         do {
             converged = true;
-            for (var prop of Object.keys(dbgconfig)) {
+            for (let prop of Object.keys(dbgconfig)) {
                 expanding = prop;
                 dbgconfig[prop] = util.expandVariablesInObject(dbgconfig[prop], expander);
             }
@@ -257,7 +257,7 @@ class Extension implements TextDocumentContentProvider, DebugConfigurationProvid
             // being launched via vscode.startDebug, so we are saving AdapterProcess'es in
             // this.launching and then try to re-associate them with correct DebugSessions
             // once we get this notification. >:-(
-            for (var i = 0; i < this.launching.length; ++i) {
+            for (let i = 0; i < this.launching.length; ++i) {
                 let [name, adapter] = this.launching[i];
                 if (session.name == name) {
                     this.activeSessions[session.id] = new ActiveDebugSession(adapter, session);
@@ -295,7 +295,7 @@ class Extension implements TextDocumentContentProvider, DebugConfigurationProvid
     registerDisplaySettingCommand(command: string, updater: (settings: DisplaySettings) => Promise<void>) {
         this.context.subscriptions.push(commands.registerCommand(command, async () => {
             if (debug.activeDebugSession && debug.activeDebugSession.type == 'lldb') {
-                var settings = this.context.globalState.get<DisplaySettings>('display_settings') || new DisplaySettings();
+                let settings = this.context.globalState.get<DisplaySettings>('display_settings') || new DisplaySettings();
                 await updater(settings);
                 this.context.globalState.update('display_settings', settings);
                 await debug.activeDebugSession.customRequest('displaySettings', settings);
@@ -322,9 +322,9 @@ class Extension implements TextDocumentContentProvider, DebugConfigurationProvid
     }
 
     async onDisplayHtml(sessionId: string, body: any) {
-        var documentUri = this.normalizeUri(Uri.parse(body.uri), sessionId);
-        for (var key in body.content) {
-            var contentUri = this.normalizeUri(Uri.parse(key), sessionId);
+        let documentUri = this.normalizeUri(Uri.parse(body.uri), sessionId);
+        for (let key in body.content) {
+            let contentUri = this.normalizeUri(Uri.parse(key), sessionId);
             let content = body.content[key];
             if (content != null) {
                 this.activeSessions[sessionId].previewContent[contentUri.toString()] = content;

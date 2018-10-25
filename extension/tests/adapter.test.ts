@@ -20,8 +20,8 @@ const rusttypesSource = path.normalize(path.join(projectDir, 'debuggee', 'rust',
 const sleepAsync = promisify(setTimeout);
 const openFileAsync = promisify(fs.open);
 
-var dc = new DebugClient('', '', 'lldb');
-var testId = 0;
+let dc = new DebugClient('', '', 'lldb');
+let testId = 0;
 
 suite('Adapter tests', () => {
 
@@ -33,7 +33,7 @@ suite('Adapter tests', () => {
     });
 
     setup(async () => {
-        var port = null;
+        let port = null;
         if (process.env.DEBUG_SERVER) {
             port = parseInt(process.env.DEBUG_SERVER)
         } else {
@@ -186,7 +186,7 @@ suite('Adapter tests', () => {
             // let response3 = await dc.evaluateRequest({ expression: "/nat 2+2", frameId: frameId, context: "watch" });
             // assert.ok(response3.body.result.endsWith("4")); // "(int) $0 = 70"
 
-            for (var i = 1; i < 10; ++i) {
+            for (let i = 1; i < 10; ++i) {
                 let waitForStopAsync = waitForStopEvent();
                 await dc.continueRequest({ threadId: 0 });
                 let stoppedEvent = await withTimeout(1000, waitForStopAsync);
@@ -258,7 +258,7 @@ suite('Adapter tests', () => {
             }
         }
 
-        var debuggeeProc: cp.ChildProcess;
+        let debuggeeProc: cp.ChildProcess;
 
         suiteSetup(() => {
             debuggeeProc = cp.spawn(debuggee, ['inf_loop'], {});
@@ -402,28 +402,37 @@ function getAdapterLogFileName(): string {
 async function startDebugAdapter(title: string): Promise<number> {
     let extensionRoot = path.join(__dirname, '..', '..');
 
-    var adapterLog = getAdapterLogFileName();
+    let adapterLog = getAdapterLogFileName();
 
     let log = fs.createWriteStream(adapterLog, { flags: 'a' });
     await new Promise(resolve => log.write(format('---------- %s\n', title), resolve));
     log.close();
 
-    var adapter: cp.ChildProcess;
+    let adapter: cp.ChildProcess;
     if (process.env.USE_CODELLDB) {
         let stderr = await openFileAsync(adapterLog, 'a');
         let codelldb = path.join(extensionRoot, 'out/adapter2/codelldb');
-        let args = ["--liblldb=" + path.join(extensionRoot, 'out/lldb/lib/liblldb.so')];
+
+        let liblldb;
+        if (process.platform == 'linux')
+            liblldb = path.join(extensionRoot, 'out/lldb/lib/liblldb.so');
+        else if (process.platform == 'darwin')
+            liblldb = path.join(extensionRoot, 'out/lldb/lib/liblldb.dylib');
+        else
+            liblldb = path.join(extensionRoot, 'out/lldb/bin/liblldb.dll');
+
+        let args = ["--liblldb=" + liblldb];
         adapter = cp.spawn(codelldb, args, {
             stdio: ['ignore', 'pipe', stderr],
             cwd: extensionRoot,
             env: Object.assign({ RUST_LOG: 'error,codelldb=debug' }, process.env)
         });
     } else {
-        var lldb = path.join(extensionRoot, 'out/lldb/bin/lldb');
+        let lldb = path.join(extensionRoot, 'out/lldb/bin/lldb');
         if (process.env.LLDB_EXECUTABLE) {
             lldb = process.env.LLDB_EXECUTABLE;
         }
-        var params = {
+        let params = {
             logLevel: 0,
             logFile: adapterLog
         };
@@ -448,7 +457,7 @@ async function startDebugAdapter(title: string): Promise<number> {
 function findMarker(file: string, marker: string): number {
     let data = fs.readFileSync(file, 'utf8');
     let lines = data.split('\n');
-    for (var i = 0; i < lines.length; ++i) {
+    for (let i = 0; i < lines.length; ++i) {
         let pos = lines[i].indexOf(marker);
         if (pos >= 0) return i + 1;
     }
@@ -503,14 +512,14 @@ async function verifyLocation(threadId: number, file: string, line: number) {
 async function readVariables(variablesReference: number): Promise<any> {
     let response = await dc.variablesRequest({ variablesReference: variablesReference });
     let vars: any = {};
-    for (var v of response.body.variables) {
+    for (let v of response.body.variables) {
         vars[v.name] = v.value;
     }
     return vars;
 }
 
 function assertDictContains(dict: any, expected: any) {
-    for (var key in expected) {
+    for (let key in expected) {
         assert.equal(dict[key], expected[key], 'The value of "' + key + '" does not match the expected value.');
     }
 }
@@ -519,10 +528,10 @@ async function compareVariables(varRef: number, expected: any, prefix: string = 
     assert.notEqual(varRef, 0, 'Expected non-zero.');
     let response = await dc.variablesRequest({ variablesReference: varRef });
     let vars: any = {};
-    for (var v of response.body.variables) {
+    for (let v of response.body.variables) {
         vars[v.name] = v;
     }
-    for (var key of Object.keys(expected)) {
+    for (let key of Object.keys(expected)) {
         if (key == '$')
             continue; // Summary is checked by the caller.
 
