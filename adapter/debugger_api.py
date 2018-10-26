@@ -26,4 +26,7 @@ def display_html(uri, title=None, position=None, content={}):
 def register_content_provider(provider):
     debugsession.DebugSession.current.provide_content = provider
 
-__all__ = ['evaluate', 'stop_if', 'preview_html', 'register_content_provider']
+def register_type_callback(callback, language=None, type_class_mask=lldb.eTypeClassAny):
+    expressions.register_type_callback(callback, language, type_class_mask)
+
+__all__ = ['evaluate', 'stop_if', 'preview_html', 'register_content_provider', 'register_type_callback']
