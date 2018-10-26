@@ -3,14 +3,16 @@ import logging
 import re
 import lldb
 
-PY2 = sys.version_info[0] == 2
-if PY2:
+if sys.version_info[0] == 2:
     # python2-based LLDB accepts utf8-encoded ascii strings only.
     to_lldb_str = lambda s: s.encode('utf8', 'backslashreplace') if isinstance(s, unicode) else s
     xrange = xrange
 else:
     to_lldb_str = str
     xrange = range
+
+rust_enabled = False
+first_tuple_field = '__0'
 
 log = logging.getLogger('rust')
 
@@ -57,16 +59,6 @@ def initialize_category(debugger):
     attach_synthetic_to_type(StdRefCellBorrowSynthProvider, r'^core::cell::Ref<.+>$', True)
     attach_synthetic_to_type(StdRefCellBorrowSynthProvider, r'^core::cell::RefMut<.+>$', True)
 
-def analyze_module(sbmodule):
-    log.info('### analyzing module %s', sbmodule)
-    for cu in sbmodule.compile_units:
-        if cu.GetLanguage() == lldb.eLanguageTypeRust:
-            log.info('### analyzing unit %s', cu.file)
-            types = cu.GetTypes(lldb.eTypeClassUnion | lldb.eTypeClassStruct)
-            for ty in types:
-                #log.info('### analyzing type %s (%s)', ty.GetName(), ty.GetDisplayTypeName())
-                analyze_type(ty)
-
 # Enums and tuples cannot be recognized based on type name.
 # These require deeper runtime analysis to tease them apart.
 ENUM_DISCRIMINANT = 'RUST$ENUM$DISR'
@@ -91,7 +83,7 @@ def analyze_type(obj_type):
         first_field_name = obj_type.GetFieldAtIndex(0).GetName()
         if first_field_name == ENUM_DISCRIMINANT: # Enum variant
             attach_summary_to_type(get_enum_variant_summary, obj_type.GetDisplayTypeName())
-        elif first_field_name == '__0': # Tuple variant or tuple struct
+        elif first_field_name == first_tuple_field: # Tuple variant or tuple struct
             attach_summary_to_type(get_tuple_summary, obj_type.GetDisplayTypeName())
 
 def attach_synthetic_to_type(synth_class, type_name, is_regex=False):
@@ -354,7 +346,7 @@ class ArrayLikeSynthProvider(RustSynthProvider):
 class StdVectorSynthProvider(ArrayLikeSynthProvider):
     def ptr_and_len(self, vec):
         return (
-            gcm(vec, 'buf', 'ptr', 'pointer', '__0'),
+            gcm(vec, 'buf', 'ptr', 'pointer', first_tuple_field),
             gcm(vec, 'len').GetValueAsUnsigned()
         )
     def get_summary(self):
@@ -397,7 +389,7 @@ class StdStringSynthProvider(StringLikeSynthProvider):
     def ptr_and_len(self, valobj):
         vec = gcm(valobj, 'vec')
         return (
-            gcm(vec, 'buf', 'ptr', 'pointer', '__0'),
+            gcm(vec, 'buf', 'ptr', 'pointer', first_tuple_field),
             gcm(vec, 'len').GetValueAsUnsigned()
         )
 
@@ -416,7 +408,7 @@ class StdOsStringSynthProvider(StringLikeSynthProvider):
         if tmp.IsValid():
             vec = tmp
         return (
-            gcm(vec, 'buf', 'ptr', 'pointer', '__0'),
+            gcm(vec, 'buf', 'ptr', 'pointer', first_tuple_field),
             gcm(vec, 'len').GetValueAsUnsigned()
         )
 
@@ -480,7 +472,7 @@ class StdRefCountedSynthProvider(DerefSynthProvider):
 
 class StdRcSynthProvider(StdRefCountedSynthProvider):
     def initialize(self):
-        inner = gcm(self.valobj, 'ptr', 'pointer', '__0')
+        inner = gcm(self.valobj, 'ptr', 'pointer', first_tuple_field)
         self.strong = gcm(inner, 'strong', 'value', 'value').GetValueAsUnsigned()
         self.weak = gcm(inner, 'weak', 'value', 'value').GetValueAsUnsigned()
         if self.strong > 0:
@@ -491,7 +483,7 @@ class StdRcSynthProvider(StdRefCountedSynthProvider):
 
 class StdArcSynthProvider(StdRefCountedSynthProvider):
     def initialize(self):
-        inner = gcm(self.valobj, 'ptr', 'pointer', '__0')
+        inner = gcm(self.valobj, 'ptr', 'pointer', first_tuple_field)
         self.strong = gcm(inner, 'strong', 'v', 'value').GetValueAsUnsigned()
         self.weak = gcm(inner, 'weak', 'v', 'value').GetValueAsUnsigned()
         if self.strong > 0:
@@ -528,6 +520,12 @@ class StdRefCellBorrowSynthProvider(DerefSynthProvider):
 ##################################################################################################################
 
 def __lldb_init_module(debugger_obj, internal_dict):
+    global rust_enabled
+    global first_tuple_field
+    if 'rust-enabled' in debugger_obj.GetVersionString():
+        rust_enabled = True
+        first_tuple_field = '0'
+
     initialize_category(debugger_obj)
 
     try:

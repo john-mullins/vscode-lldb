@@ -22,8 +22,8 @@ def main():
     make_dirs(lldb_dir + '/lib')
     make_dirs(adapter2_dir)
 
+    copy_if_newer(workspace_folder + '/formatters/rust.py', adapter2_dir)
     copy_if_newer(workspace_folder + '/adapter2/codelldb.py', adapter2_dir)
-    copy_if_newer(workspace_folder + '/adapter2/rust.py', adapter2_dir)
     copy_if_newer(workspace_folder + '/adapter2/value.py', adapter2_dir)
 
     if sys.platform.startswith('linux'):

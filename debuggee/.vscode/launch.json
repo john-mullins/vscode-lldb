@@ -130,7 +130,7 @@
 			]
 		},
 		{
-			"name": "rusttypes2",
+			"name": "rusttypes 4711",
 			"type": "lldb",
 			"request": "launch",
 			"program": "${workspaceRoot}/out/rusttypes",
