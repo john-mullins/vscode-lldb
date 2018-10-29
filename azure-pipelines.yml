@@ -1,5 +1,5 @@
 variables:
-  lldbBuildId: 162
+  lldbBuildId: 183
 
   setenvLinux: |
       export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-linux
@@ -45,14 +45,12 @@ jobs:
       $(setenvLinux)
       echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
       npm install
-      mkdir build
-      cd build
-      cmake ..
+      chmod +x $LLDB_ROOT/bin/*
+      mkdir build && cd build && cmake ..
     displayName: 'Configure'
 
   - script: |
       $(setenvLinux)
-      chmod +x $LLDB_ROOT/bin/*
       cmake --build build --target all
     displayName: 'Build'
 
@@ -111,15 +109,13 @@ jobs:
   - script: |
       $(setenvOSX)
       npm install
-      mkdir build
-      cd build
-      cmake ..
+      cp $XCODE_10_DEVELOPER_DIR/../SharedFrameworks/LLDB.framework/Versions/A/Resources/debugserver $LLDB_ROOT/bin
+      chmod +x $LLDB_ROOT/bin/*
+      mkdir build && cd build && cmake ..
     displayName: 'Configure'
 
   - script: |
       $(setenvOSX)
-      cp $XCODE_10_DEVELOPER_DIR/../SharedFrameworks/LLDB.framework/Versions/A/Resources/debugserver $LLDB_ROOT/bin
-      chmod +x $LLDB_ROOT/bin/*
       cmake --build build --target all
     displayName: 'Build'
 
@@ -184,9 +180,7 @@ jobs:
   - script: |
       $(setenvWindows)
       npm install
-      mkdir build
-      cd build
-      cmake ..
+      mkdir build && cd build && cmake ..
     displayName: 'Configure'
 
   - script: |
@@ -213,12 +207,10 @@ jobs:
       echo ------------------------
       type %TEMP%\adapter2.test.log
       echo - env ------------------
-      set
-      echo - dir -----------------------
-      dir /s $(System.ArtifactsDirectory)
-      echo -----------------------------
       env
-      echo -----------------------------
+      echo - dir -----------------------
       ls -R $(System.ArtifactsDirectory)
+      echo - dir -----------------------
+      ls -R
     displayName: 'On Failure'
     condition: failed()

@@ -16,7 +16,9 @@ elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
     )
     set(LldbFiles
         bin/lldb
+        bin/debugserver
         lib/liblldb.dylib
+        lib/liblldb.8.0.0.dylib
         ${LldbPythonFiles}
     )
 elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")

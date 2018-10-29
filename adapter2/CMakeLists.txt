@@ -32,7 +32,7 @@ foreach(File ${CodeLldbFiles})
 endforeach()
 
 add_custom_target(cargo_build
-    COMMAND cargo build
+    COMMAND ${CMAKE_COMMAND} -E env LLDB_ROOT=${LLDB_ROOT} cargo build
     COMMENT "Running cargo build"
 )
 
