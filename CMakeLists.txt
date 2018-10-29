@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(CMakeCmd ${CMAKE_COMMAND} -E )
+set(LLDB_ROOT $ENV{LLDB_ROOT} CACHE PATH "Root of LLDB build directory")
 
 add_subdirectory(debuggee)
 add_subdirectory(extension)
 add_subdirectory(tests)
+
+set(CMakeCmd ${CMAKE_COMMAND} -E )
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
     set(CodeLldbFiles

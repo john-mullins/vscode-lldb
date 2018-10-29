@@ -43,7 +43,7 @@ jobs:
       npm install
       mkdir build
       cd build
-      cmake -DLLDB_ROOT=$LLDB_ROOT ..
+      cmake ..
     displayName: 'Setup'
 
   - script: |
@@ -105,7 +105,7 @@ jobs:
       npm install
       mkdir build
       cd build
-      cmake -DLLDB_ROOT=$LLDB_ROOT ..
+      cmake ..
     displayName: 'Setup'
 
   # - script: |
@@ -179,7 +179,7 @@ jobs:
       npm install
       mkdir build
       cd build
-      cmake -DLLDB_ROOT=%LLDB_ROOT% ..
+      cmake ..
     displayName: 'Setup'
 
   - script: |
