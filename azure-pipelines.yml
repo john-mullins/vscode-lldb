@@ -41,25 +41,28 @@ jobs:
       echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-unknown-linux-gnu
       npm install
+      mkdir build
+      cd build
+      cmake ..
     displayName: 'Setup'
 
   - script: |
       $(setenvLinux)
       chmod +x $LLDB_ROOT/bin/*
-      npm run build
+      cmake --build build --target all
     displayName: 'Build'
 
   - script: |
       $(setenvLinux)
       export ADAPTER_LOG=/tmp/adapter.test.log
-      npm run test:adapter
+      cmake --build build --target test_adapter
     displayName: 'Test1'
     condition: always()
 
   - script: |
       $(setenvLinux)
       export ADAPTER_LOG=/tmp/adapter2.test.log
-      npm run test:adapter2
+      cmake --build build --target test_adapter
     displayName: 'Test2'
     condition: always()
 
@@ -100,6 +103,9 @@ jobs:
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-apple-darwin
       npm install
+      mkdir build
+      cd build
+      cmake ..
     displayName: 'Setup'
 
   # - script: |
@@ -111,20 +117,20 @@ jobs:
       $(setenvOSX)
       cp $XCODE_10_DEVELOPER_DIR/../SharedFrameworks/LLDB.framework/Versions/A/Resources/debugserver $LLDB_ROOT/bin
       chmod +x $LLDB_ROOT/bin/*
-      npm run build
+      cmake --build build --target all
     displayName: 'Build'
 
   - script: |
       $(setenvOSX)
       export ADAPTER_LOG=/tmp/adapter.test.log
-      npm run test:adapter
+      cmake --build build --target test_adapter
     displayName: 'Test1'
     condition: always()
 
   - script: |
       $(setenvOSX)
       export ADAPTER_LOG=/tmp/adapter2.test.log
-      npm run test:adapter2
+      cmake --build build --target test_adapter2
     displayName: 'Test2'
     condition: always()
 
@@ -171,24 +177,27 @@ jobs:
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-msvc
       npm install
+      mkdir build
+      cd build
+      cmake ..
     displayName: 'Setup'
 
   - script: |
       $(setenvWindows)
-      npm run build
+      cmake --build build --target all
     displayName: 'Build'
 
   - script: |
       $(setenvWindows)
       set ADAPTER_LOG=%TEMP%\adapter.test.log
-      npm run test:adapter
+      cmake --build build --target test_adapter
     displayName: 'Test1'
     condition: always()
 
   - script: |
       $(setenvWindows)
       set ADAPTER_LOG=%TEMP%\adapter2.test.log
-      npm run test:adapter2
+      cmake --build build --target test_adapter2
     displayName: 'Test2'
     condition: always()
 
