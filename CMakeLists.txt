@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(LLDB_ROOT $ENV{LLDB_ROOT} CACHE PATH "Root of LLDB build directory")
+set(CMAKE_CXX_STANDARD 11)
 
 add_subdirectory(debuggee)
 add_subdirectory(extension)
