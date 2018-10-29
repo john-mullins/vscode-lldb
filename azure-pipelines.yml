@@ -179,7 +179,7 @@ jobs:
 
   - script: |
       $(setenvWindows)
-      npm install
+      call npm install
       mkdir build && cd build && cmake ..
     displayName: 'Configure'
 
