@@ -23,7 +23,6 @@
 			"preLaunchTask": "lldb",
 			"pythonPath": "${workspaceFolder}/tools/debug_launcher.py",
 			"program": "${workspaceFolder}/tools/debug_stub.py",
-			"env": { "LLDB_EXECUTABLE": "${config:lldb.dbgconfig.devExecutable}" }
 		},
 		{
 			"name": "codelldb",
@@ -140,7 +139,6 @@
 			],
 			"env": {
 				"USE_CODELLDB": "1",
-				"LLDB_EXECUTABLE": "${config:lldb.dbgconfig.devExecutable}",
 				"RUST_LOG": "error,codelldb=debug",
 				"RUST_BACKTRACE": "full"
 			},

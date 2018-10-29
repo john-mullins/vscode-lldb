@@ -1,84 +1,17 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(LLDB_ROOT $ENV{LLDB_ROOT} CACHE PATH "Root of LLDB build directory")
+if (NOT LLDB_ROOT)
+    message(FATAL_ERROR "LLDB_ROOT not set." )
+endif()
+
 set(CMAKE_CXX_STANDARD 11)
 
+add_subdirectory(adapter2)
+add_subdirectory(lldb)
 add_subdirectory(debuggee)
 add_subdirectory(extension)
 add_subdirectory(tests)
-
-set(CMakeCmd ${CMAKE_COMMAND} -E )
-
-if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
-    set(CodeLldbFiles
-        target/debug/codelldb
-        target/debug/libcodelldb.so
-    )
-    file(GLOB_RECURSE LldbPythonFiles RELATIVE ${LLDB_ROOT}
-        "${LLDB_ROOT}/lib/python2.7/site-packages/*"
-    )
-    set(LldbFiles
-        bin/lldb
-        bin/lldb-server
-        lib/liblldb.so
-        lib/liblldb.so.8svn
-        ${LldbPythonFiles}
-    )
-elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
-    set(CodeLldbFiles
-        target/debug/codelldb
-        target/debug/libcodelldb.dylib
-    )
-    file(GLOB_RECURSE LldbPythonFiles RELATIVE ${LLDB_ROOT}
-        "${LLDB_ROOT}/lib/python2.7/site-packages/*"
-    )
-    set(LldbFiles
-        bin/lldb
-        lib/liblldb.dylib
-        ${LldbPythonFiles}
-    )
-elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    set(CodeLldbFiles
-        target/debug/codelldb.exe
-        target/debug/libcodelldb.dll
-    )
-    file(GLOB_RECURSE LldbPythonFiles RELATIVE ${LLDB_ROOT}
-        "${LLDB_ROOT}/lib/site-packages/*"
-    )
-    set(LldbFiles
-        bin/lldb.exe
-        lib/liblldb.dll
-        ${LldbPythonFiles}
-    )
-else()
-    message(FATAL_ERROR "${CMAKE_HOST_SYSTEM_NAME} not supported." )
-endif()
-
-list(APPEND CodeLldbFiles adapter2/codelldb.py adapter2/value.py formatters/rust.py)
-
-add_custom_target(lldb ALL)
-foreach(File ${LldbFiles})
-    if (NOT ${File} MATCHES "lldb/_lldb.*")
-        add_custom_command(
-            TARGET lldb
-            MAIN_DEPENDENCY ${LLDB_ROOT}/${File}
-            COMMAND ${CMakeCmd} copy_if_different ${LLDB_ROOT}/${File} ${CMAKE_CURRENT_BINARY_DIR}/lldb/${File}
-        )
-    endif()
-endforeach()
-
-add_custom_target(cargo_build
-    COMMAND cargo build)
-
-add_custom_target(codelldb ALL DEPENDS lldb cargo_build)
-foreach(File ${CodeLldbFiles})
-    get_filename_component(FileName ${File} NAME)
-    add_custom_command(
-        TARGET codelldb
-        MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/${File}
-        COMMAND ${CMakeCmd} copy_if_different ${CMAKE_SOURCE_DIR}/${File} ${CMAKE_CURRENT_BINARY_DIR}/adapter2/${FileName}
-    )
-endforeach()
 
 ### Test
 

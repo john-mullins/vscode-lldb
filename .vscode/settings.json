@@ -13,10 +13,5 @@
     "lldb.logLevel": 30,
     "lldb.loggers": {
         "wireprotocol": 0
-    },
-    "lldb.dbgconfig": {
-        //"lldbRoot": "/home/chega/NW/lldb-linux"
-        "lldbRoot": "/home/chega/NW/llvm-build/build",
-        "devExecutable": "out/lldb/bin/lldb"
-    },
+    }
 }
