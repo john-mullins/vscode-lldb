@@ -106,7 +106,7 @@ jobs:
 
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-apple-darwin
-      displayName: 'Install Rust'
+    displayName: 'Install Rust'
 
   - script: |
       $(setenvOSX)

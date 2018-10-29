@@ -69,12 +69,12 @@ endforeach()
 add_custom_target(cargo_build
     COMMAND cargo build)
 
-add_custom_target(codelldb ALL DEPENDS lldb)
+add_custom_target(codelldb ALL DEPENDS lldb cargo_build)
 foreach(File ${CodeLldbFiles})
     get_filename_component(FileName ${File} NAME)
     add_custom_command(
         TARGET codelldb
-        MAIN_DEPENDENCY ${File}
+        MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/${File}
         COMMAND ${CMakeCmd} copy_if_different ${CMAKE_SOURCE_DIR}/${File} ${CMAKE_CURRENT_BINARY_DIR}/adapter2/${FileName}
     )
 endforeach()
