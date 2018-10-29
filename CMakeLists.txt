@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(LLDB_ROOT "/home/chega/NW/llvm-build/build")
 set(CMakeCmd ${CMAKE_COMMAND} -E )
 
 add_subdirectory(debuggee)
