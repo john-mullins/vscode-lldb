@@ -6,15 +6,15 @@ import { DebugClient } from 'vscode-debugadapter-testsupport';
 import { DebugProtocol as dp } from 'vscode-debugprotocol';
 import { format, promisify, inspect } from 'util';
 
-import * as util from '../util';
+import * as util from '../extension/util';
 
-const projectDir = path.join(__dirname, '..', '..');
+const projectDir = process.cwd();
 
-const debuggee = path.join(projectDir, 'debuggee', 'out', 'debuggee');
+const debuggee = path.join(projectDir, 'build', 'debuggee', 'debuggee');
 const debuggeeSource = path.normalize(path.join(projectDir, 'debuggee', 'cpp', 'debuggee.cpp'));
 const debuggeeHeader = path.normalize(path.join(projectDir, 'debuggee', 'cpp', 'dir1', 'debuggee.h'));
 
-const rusttypes = path.join(projectDir, 'debuggee', 'out', 'rusttypes');
+const rusttypes = path.join(projectDir, 'build', 'debuggee', 'rusttypes');
 const rusttypesSource = path.normalize(path.join(projectDir, 'debuggee', 'rust', 'types.rs'));
 
 const sleepAsync = promisify(setTimeout);
@@ -348,14 +348,14 @@ suite('Adapter tests', () => {
                 path_buf: foo_bar,
                 path: foo_bar,
                 str_tuple: {
-                    __0: '"A String"',
-                    __1: '"String slice"',
-                    __2: '"C String"',
-                    __3: '"C String"',
-                    __4: '"OS String"',
-                    __5: '"OS String"',
-                    __6: foo_bar,
-                    __7: foo_bar,
+                    '0': '"A String"',
+                    '1': '"String slice"',
+                    '2': '"C String"',
+                    '3': '"C String"',
+                    '4': '"OS String"',
+                    '5': '"OS String"',
+                    '6': foo_bar,
+                    '7': foo_bar,
                 },
                 class: { finally: 1, import: 2, lambda: 3, raise: 4 },
                 boxed: { a: 1, b: '"b"', c: 12 },
@@ -383,7 +383,7 @@ suite('Adapter tests', () => {
                 expression: 'string', context: 'watch',
                 frameId: frames.body.stackFrames[0].id
             });
-            await compareVariables(response2.body.variablesReference, { '[0]': "'A'", '[7]': "'g'" });
+            await compareVariables(response2.body.variablesReference, { '[0]': 65, '[7]': 103 });
         });
     });
 });
@@ -400,8 +400,6 @@ function getAdapterLogFileName(): string {
 }
 
 async function startDebugAdapter(title: string): Promise<number> {
-    let extensionRoot = path.join(__dirname, '..', '..');
-
     let adapterLog = getAdapterLogFileName();
 
     let log = fs.createWriteStream(adapterLog, { flags: 'a' });
@@ -411,24 +409,24 @@ async function startDebugAdapter(title: string): Promise<number> {
     let adapter: cp.ChildProcess;
     if (process.env.USE_CODELLDB) {
         let stderr = await openFileAsync(adapterLog, 'a');
-        let codelldb = path.join(extensionRoot, 'out/adapter2/codelldb');
+        let codelldb = path.join(projectDir, 'build/adapter2/codelldb');
 
         let liblldb;
         if (process.platform == 'linux')
-            liblldb = path.join(extensionRoot, 'out/lldb/lib/liblldb.so');
+            liblldb = path.join(projectDir, 'build/lldb/lib/liblldb.so');
         else if (process.platform == 'darwin')
-            liblldb = path.join(extensionRoot, 'out/lldb/lib/liblldb.dylib');
+            liblldb = path.join(projectDir, 'build/lldb/lib/liblldb.dylib');
         else
-            liblldb = path.join(extensionRoot, 'out/lldb/bin/liblldb.dll');
+            liblldb = path.join(projectDir, 'build/lldb/bin/liblldb.dll');
 
         let args = ["--liblldb=" + liblldb];
         adapter = cp.spawn(codelldb, args, {
             stdio: ['ignore', 'pipe', stderr],
-            cwd: extensionRoot,
+            cwd: projectDir,
             env: Object.assign({ RUST_LOG: 'error,codelldb=debug' }, process.env)
         });
     } else {
-        let lldb = path.join(extensionRoot, 'out/lldb/bin/lldb');
+        let lldb = path.join(projectDir, 'build/lldb/bin/lldb');
         if (process.env.LLDB_EXECUTABLE) {
             lldb = process.env.LLDB_EXECUTABLE;
         }
@@ -437,12 +435,12 @@ async function startDebugAdapter(title: string): Promise<number> {
             logFile: adapterLog
         };
         let args = ['-b', '-Q',
-            '-O', format('command script import \'%s\'', path.join(extensionRoot, 'adapter')),
+            '-O', format('command script import \'%s\'', path.join(projectDir, 'adapter')),
             '-O', format('script adapter.run_tcp_session(0 ,\'%s\')', new Buffer(JSON.stringify(params)).toString('base64'))
         ]
         adapter = cp.spawn(lldb, args, {
             stdio: ['ignore', 'pipe', 'pipe'],
-            cwd: extensionRoot,
+            cwd: projectDir,
         });
     }
 

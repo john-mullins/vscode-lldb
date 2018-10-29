@@ -16,7 +16,7 @@
     },
     "lldb.dbgconfig": {
         //"lldbRoot": "/home/chega/NW/lldb-linux"
-        "lldbRoot": "/home/chega/NW/llvm-build/build"
+        "lldbRoot": "/home/chega/NW/llvm-build/build",
+        "devExecutable": "out/lldb/bin/lldb"
     },
-    "lldb.executable": "/home/chega/NW/llvm-build/build/bin/lldb"
 }

@@ -19,6 +19,9 @@ def to_utf8(s):
 
 sys.modules['debugger'] = sys.modules[__name__]
 
+# import ptvsd
+# ptvsd.attach_server.attach(address=('127.0.0.1', 3000))
+
 #============================================================================================
 
 RESULT_CALLBACK = CFUNCTYPE(None, c_int, c_void_p, c_size_t, c_void_p)
@@ -91,17 +94,19 @@ type_class_mask_union = 0
 
 # observer: Callable[SBModule]
 def register_type_callback(callback, language=None, type_class_mask=lldb.eTypeClassAny):
+    global type_callbacks, type_class_mask_union
     type_callbacks.setdefault(language, []).append((type_class_mask, callback))
     type_class_mask_union |= type_class_mask
 
 def analyze_module(sbmodule):
+    global type_callbacks, type_class_mask_union
     log.info('### analyzing module %s', sbmodule)
     for cu in sbmodule.compile_units:
         callbacks = type_callbacks.get(None) + type_callbacks.get(cu.GetLanguage(), [])
         types = cu.GetTypes(type_class_mask_union)
         for sbtype in types:
             type_class = sbtype.GetTypeClass()
-            for type_class_mask, callaback in callbacks:
+            for type_class_mask, callback in callbacks:
                 if type_class & type_class_mask != 0:
                     try:
                         callback(sbtype)

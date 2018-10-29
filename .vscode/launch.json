@@ -3,7 +3,7 @@
 	"configurations": [
 		{
 			"name": "extension",
-			"preLaunchTask": "npm: build",
+			"preLaunchTask": "extension",
 			"type": "extensionHost",
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
@@ -17,21 +17,22 @@
 			]
 		},
 		{
-			"name": "launch adapter",
+			"name": "adapter",
 			"type": "python",
 			"request": "launch",
+			"preLaunchTask": "lldb",
 			"pythonPath": "${workspaceFolder}/tools/debug_launcher.py",
 			"program": "${workspaceFolder}/tools/debug_stub.py",
-			"env": { "LLDB_EXECUTABLE": "${config:lldb.executable}" }
+			"env": { "LLDB_EXECUTABLE": "${config:lldb.dbgconfig.devExecutable}" }
 		},
 		{
 			"name": "codelldb",
-			"preLaunchTask": "build codelldb",
+			"preLaunchTask": "codelldb",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceFolder}/out/adapter2/codelldb",
+			"program": "${workspaceFolder}/build/adapter2/codelldb",
 			"args": [
-				"--liblldb=${workspaceFolder}/out/lldb/lib/liblldb.so",
+				"--liblldb=${workspaceFolder}/build/lldb/lib/liblldb.so",
 				"--multi-session",
 				"--port=4711"
 			],
@@ -48,21 +49,23 @@
 			"terminal": "integrated"
 		},
 		{
-			"name": "codelldb attach",
-			"type": "lldb",
-			"request": "attach",
-			"program": "${workspaceFolder}/out/adapter2/codelldb",
-			"sourceLanguages": [
-				"cpp",
-				"rust"
-			],
+			"name": "codelldb python",
+			"type": "python",
+			"request": "launch",
+			"host": "localhost",
+			"port": 3000,
+			"pythonPath": "bash",
+			//"program": "${workspaceFolder}/tools/dummy.py"
+			// "request": "attach",
+			// "port": 3000,
+			// "host": "localhost"
 		},
 		{
 			"name": "codelldb cppvsdbg",
 			"type": "cppvsdbg",
 			"request": "launch",
-			"preLaunchTask": "build codelldb",
-			"program": "${workspaceFolder}/out/adapter2/codelldb.exe",
+			"preLaunchTask": "codelldb",
+			"program": "${workspaceFolder}/build/adapter2/codelldb.exe",
 			"args": [
 				"--multi-session"
 			],
@@ -122,7 +125,7 @@
 		},
 		{
 			"name": "tests",
-			"preLaunchTask": "npm: build:extension",
+			"preLaunchTask": "tests",
 			"type": "node",
 			"request": "launch",
 			"cwd": "${workspaceRoot}",
@@ -132,19 +135,25 @@
 				"--timeout", "999999",
 				"--colors",
 				"--exit",
-				"-g", "run program",
-				"./out/tests"
+				//"-g", "run program",
+				"build/tests/tests"
 			],
 			"env": {
 				"USE_CODELLDB": "1",
-				"LLDB_EXECUTABLE": "${config:lldb.executable}",
+				"LLDB_EXECUTABLE": "${config:lldb.dbgconfig.devExecutable}",
 				"RUST_LOG": "error,codelldb=debug",
 				"RUST_BACKTRACE": "full"
 			},
 			"sourceMaps": true,
 			"outFiles": [
-				"${workspaceRoot}/out/**/*.js"
+				"${workspaceRoot}/build/tests/**/*.js"
 			]
+		}
+	],
+	"compounds": [
+		{
+			"name": "codelldb + python",
+			"configurations": ["codelldb", "codelldb python"]
 		}
 	]
 }

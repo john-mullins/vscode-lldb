@@ -50,8 +50,8 @@ def initialize_category(debugger):
 
     attach_synthetic_to_type(StdRcSynthProvider, r'^alloc::rc::Rc<.+>$', True)
     attach_synthetic_to_type(StdRcSynthProvider, r'^alloc::rc::Weak<.+>$', True)
-    attach_synthetic_to_type(StdArcSynthProvider, r'^alloc::sync::Arc<.+>$', True)
-    attach_synthetic_to_type(StdArcSynthProvider, r'^alloc::sync::Weak<.+>$', True)
+    attach_synthetic_to_type(StdArcSynthProvider, r'^alloc::(sync|arc)::Arc<.+>$', True)
+    attach_synthetic_to_type(StdArcSynthProvider, r'^alloc::(sync|arc)::Weak<.+>$', True)
     attach_synthetic_to_type(StdMutexSynthProvider, r'^std::sync::mutex::Mutex<.+>$', True)
 
     attach_synthetic_to_type(StdCellSynthProvider, r'^core::cell::Cell<.+>$', True)
@@ -87,8 +87,7 @@ def analyze_type(obj_type):
             attach_summary_to_type(get_tuple_summary, obj_type.GetDisplayTypeName())
 
 def attach_synthetic_to_type(synth_class, type_name, is_regex=False):
-    global rust_category
-    global module
+    global module, rust_category
     log.debug('attaching synthetic %s to "%s", is_regex=%s', synth_class.__name__, type_name, is_regex)
     synth = lldb.SBTypeSynthetic.CreateWithClassName(__name__ + '.' + synth_class.__name__)
     synth.SetOptions(lldb.eTypeOptionCascade)
@@ -520,8 +519,7 @@ class StdRefCellBorrowSynthProvider(DerefSynthProvider):
 ##################################################################################################################
 
 def __lldb_init_module(debugger_obj, internal_dict):
-    global rust_enabled
-    global first_tuple_field
+    global rust_enabled, first_tuple_field
     if 'rust-enabled' in debugger_obj.GetVersionString():
         rust_enabled = True
         first_tuple_field = '0'
@@ -531,5 +529,5 @@ def __lldb_init_module(debugger_obj, internal_dict):
     try:
         import debugger
         debugger.register_type_callback(analyze_type, lldb.eLanguageTypeRust, lldb.eTypeClassUnion | lldb.eTypeClassStruct)
-    except Exception:
+    except Exception as err:
         log.error('### %s', err)

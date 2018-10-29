@@ -5,7 +5,7 @@
 			"name": "debuggee launch vars",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceRoot}/out/debuggee",
+			"program": "${workspaceRoot}/../build/debuggee/debuggee",
 			"args": ["vars", "Farbfüllung", "äöüßÄÖÜ"],
 			"terminal": "integrated",
 		},
@@ -13,28 +13,28 @@
 			"name": "debuggee launch threads",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceRoot}/out/debuggee",
+			"program": "${workspaceRoot}/../build/debuggee/debuggee",
 			"args": ["threads"]
 		},
 		{
 			"name": "debuggee launch crash",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceRoot}/out/debuggee",
+			"program": "${workspaceRoot}/../build/debuggee/debuggee",
 			"args": ["crash"]
 		},
 		{
 			"name": "debuggee launch throw",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceRoot}/out/debuggee",
+			"program": "${workspaceRoot}/../build/debuggee/debuggee",
 			"args": ["throw"]
 		},
 		{
 			"name": "debuggee launch mandelbrot",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceRoot}/out/debuggee",
+			"program": "${workspaceRoot}/../build/debuggee/debuggee",
 			"args": ["mandelbrot"],
 			"initCommands": [
 				"command script import '${workspaceRoot}/debuggee/debugvis.py"
@@ -44,7 +44,7 @@
 			"name": "debuggee launch disassembly",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceRoot}/out/debuggee/debuggee",
+			"program": "${workspaceRoot}/../build/debuggee/debuggee/debuggee",
 			"stopOnEntry": true,
 			"args": ["dasm"]
 		},
@@ -52,7 +52,7 @@
 			"name": "debuggee launch header",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceRoot}/out/debuggee",
+			"program": "${workspaceRoot}/../build/debuggee/debuggee",
 			"args": ["header"],
 			"cwd": "${workspaceFolder}/out"
 		},
@@ -60,21 +60,21 @@
 			"name": "debuggee launch check_env",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceRoot}/out/debuggee",
+			"program": "${workspaceRoot}/../build/debuggee/debuggee",
 			"args": ["check_env", "FOO", "BAR"]
 		},
 		{
 			"name": "debuggee attach by pid",
 			"type": "lldb",
 			"request": "attach",
-			//"program": "${workspaceRoot}/out/debuggee",
+			//"program": "${workspaceRoot}/../build/debuggee/debuggee",
 			"pid": "${command:pickMyProcess}"
 		},
 		{
 			"name": "debuggee attach by name",
 			"type": "lldb",
 			"request": "attach",
-			//"program": "${workspaceRoot}/out/debuggee"
+			//"program": "${workspaceRoot}/../build/debuggee/debuggee"
 			"program": "debuggee"
 		},
 		{
@@ -82,7 +82,7 @@
 			"type": "lldb",
 			"request": "custom",
 			"targetCreateCommands": [
-				"target create ${workspaceRoot}/out/debuggee"
+				"target create ${workspaceRoot}/../build/debuggee/debuggee"
 			],
 			"processCreateCommands": [
 				"process launch -- vars"
@@ -92,7 +92,7 @@
 			"name": "debuggee remote platform launch vars",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceRoot}/out/debuggee",
+			"program": "${workspaceRoot}/../build/debuggee/debuggee",
 			// lldb-server platform --server --listen *:1234
 			"initCommands": [
 				"platform select remote-linux",
@@ -109,7 +109,7 @@
 			"request": "custom",
 			// gdbserver 127.0.0.1:1234 out/debuggee/debuggee vars
 			"targetCreateCommands": [
-				"target create  ${workspaceRoot}/out/debuggee",
+				"target create  ${workspaceRoot}/../build/debuggee/debuggee",
 			],
 			"processCreateCommands": [
 				"gdb-remote 127.0.0.1:1234",
@@ -120,7 +120,7 @@
 			"name": "rusttypes",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceRoot}/out/rusttypes",
+			"program": "${workspaceRoot}/../build/debuggee/rusttypes",
 			"cwd": "${workspaceRoot}",
 			"sourceMap": {
 				"/Users/travis/build/rust-lang/rust/": "${workspaceRoot}/../rust/"
@@ -133,7 +133,7 @@
 			"name": "rusttypes 4711",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceRoot}/out/rusttypes",
+			"program": "${workspaceRoot}/../build/debuggee/rusttypes",
 			"cwd": "${workspaceRoot}",
 			"debugServer": 4711,
 			"sourceMap": {
