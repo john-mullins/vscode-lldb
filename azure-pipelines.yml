@@ -38,13 +38,17 @@ jobs:
     displayName: 'Download LLDB'
 
   - script: |
-      echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-unknown-linux-gnu
+    displayName: 'Install Rust'
+
+  - script: |
+      $(setenvLinux)
+      echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
       npm install
       mkdir build
       cd build
       cmake ..
-    displayName: 'Setup'
+    displayName: 'Configure'
 
   - script: |
       $(setenvLinux)
@@ -102,16 +106,15 @@ jobs:
 
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-apple-darwin
+      displayName: 'Install Rust'
+
+  - script: |
+      $(setenvOSX)
       npm install
       mkdir build
       cd build
       cmake ..
-    displayName: 'Setup'
-
-  # - script: |
-  #     ls -l `which lldb`
-  #     find / -name debugserver
-  #   displayName: 'Info'
+    displayName: 'Configure'
 
   - script: |
       $(setenvOSX)
@@ -176,11 +179,15 @@ jobs:
 
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-msvc
+    displayName: 'Install Rust'
+
+  - script: |
+      $(setenvWindows)
       npm install
       mkdir build
       cd build
       cmake ..
-    displayName: 'Setup'
+    displayName: 'Configure'
 
   - script: |
       $(setenvWindows)
