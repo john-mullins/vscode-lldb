@@ -1,10 +1,16 @@
 project(debuggee)
 
+if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+    set(WithDebugInfo /Zi)
+else()
+    set(WithDebugInfo -g)
+endif()
+
 # Shared libdebuggee.[so|dylib|dll]
 add_library(libdebuggee SHARED
     cpp/libdebuggee/libmain.cpp
 )
-target_compile_options(libdebuggee PRIVATE -g)
+target_compile_options(libdebuggee PRIVATE ${WithDebugInfo})
 set_target_properties(libdebuggee PROPERTIES OUTPUT_NAME "debuggee")
 
 # without debug info, for testing disassembly
@@ -16,13 +22,13 @@ add_library(debuggee_nodebinfo STATIC
 add_executable(debuggee
     cpp/../cpp/./debuggee.cpp
 )
-target_compile_options(debuggee PRIVATE -g)
-target_link_libraries(debuggee
-    debuggee_nodebinfo
-    dl
-    pthread
-)
+target_compile_options(debuggee PRIVATE ${WithDebugInfo})
 
+if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+    target_link_libraries(debuggee debuggee_nodebinfo)
+else()
+    target_link_libraries(debuggee debuggee_nodebinfo dl pthread)
+endif()
 
 # rusttypes
 add_custom_target(rusttypes

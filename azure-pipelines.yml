@@ -51,7 +51,7 @@ jobs:
 
   - script: |
       $(setenvLinux)
-      cmake --build build --target all
+      cmake --build build
     displayName: 'Build'
 
   - script: |
@@ -116,7 +116,7 @@ jobs:
 
   - script: |
       $(setenvOSX)
-      cmake --build build --target all
+      cmake --build build
     displayName: 'Build'
 
   - script: |
@@ -185,7 +185,7 @@ jobs:
 
   - script: |
       $(setenvWindows)
-      cmake --build build --target all
+      cmake --build build
     displayName: 'Build'
 
   - script: |
