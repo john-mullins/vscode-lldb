@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <complex>
 #include <thread>
+#include <exception>
 #if !defined(_WIN32)
 #include <unistd.h>
 #include <dlfcn.h>
@@ -255,10 +256,16 @@ int main(int argc, char *argv[])
         header_fn1(1);
         header_fn2(2);
 #if !defined(_WIN32)
+    #if defined(__APPLE__)
+        void *hlib = dlopen("@executable_path/libdebuggee.dylib", RTLD_NOW);
+    #else
         void *hlib = dlopen("./libdebuggee.so", RTLD_NOW);
+    #endif
+        if (!hlib) throw std::runtime_error(dlerror());
         auto sharedlib_entry = reinterpret_cast<void (*)()>(dlsym(hlib, "sharedlib_entry"));
 #else
         HMODULE hlib = LoadLibrary("libdebuggee.dll");
+        if (!hlib) throw std::runtime_error("Could not load libdebuggee");
         auto sharedlib_entry = reinterpret_cast<void (*)()>(GetProcAddress(hlib, "sharedlib_entry"));
 #endif
         sharedlib_entry();
