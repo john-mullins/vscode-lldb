@@ -15,22 +15,23 @@ add_subdirectory(tests)
 
 ### Test
 
-set(MochaArgs ${CMAKE_SOURCE_DIR}/node_modules/mocha/bin/_mocha
+set(MochaCommand ${CMAKE_SOURCE_DIR}/node_modules/mocha/bin/_mocha
     -u tdd
     --timeout 10000
     --exit
     --require source-map-support/register
     \${MOCHA_ARGS}
-    ${CMAKE_BINARY_DIR}/tests/tests)
+    ${CMAKE_BINARY_DIR}/tests/tests
+)
 
 add_custom_target(test_adapter
     DEPENDS tests lldb debuggee
-    COMMAND ${MochaArgs} --retries 3
+    COMMAND ${MochaCommand}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
 add_custom_target(test_adapter2
     DEPENDS tests codelldb debuggee
-    COMMAND USE_CODELLDB=1 ${MochaArgs}
+    COMMAND USE_CODELLDB=1 ${MochaCommand}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )

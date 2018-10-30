@@ -1,5 +1,5 @@
 variables:
-  lldbBuildId: 183
+  lldbBuildId: 197
 
   setenvLinux: |
       export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-linux
@@ -109,7 +109,6 @@ jobs:
   - script: |
       $(setenvOSX)
       npm install
-      cp $XCODE_10_DEVELOPER_DIR/../SharedFrameworks/LLDB.framework/Versions/A/Resources/debugserver $LLDB_ROOT/bin
       chmod +x $LLDB_ROOT/bin/*
       mkdir build && cd build && cmake ..
     displayName: 'Configure'

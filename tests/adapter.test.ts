@@ -17,7 +17,6 @@ const debuggeeHeader = path.normalize(path.join(projectDir, 'debuggee', 'cpp', '
 const rusttypes = path.join(projectDir, 'build', 'debuggee', 'rusttypes');
 const rusttypesSource = path.normalize(path.join(projectDir, 'debuggee', 'rust', 'types.rs'));
 
-const sleepAsync = promisify(setTimeout);
 const openFileAsync = promisify(fs.open);
 
 let dc = new DebugClient('', '', 'lldb');
@@ -40,12 +39,10 @@ suite('Adapter tests', () => {
             ++testId;
             port = await startDebugAdapter(testId.toString());
         }
-        //console.log('Debug server port:', port)
-        dc.start(port);
+        await dc.start(port);
     });
     teardown(async () => {
-        dc.stop();
-        await sleepAsync(100);
+        await dc.stop();
     });
 
     suite('Basic', () => {
@@ -447,7 +444,6 @@ async function startDebugAdapter(title: string): Promise<number> {
     let regex = new RegExp('^Listening on port (\\d+)\\s', 'm');
     let match = await util.waitForPattern(adapter, adapter.stdout, regex);
     let port = parseInt(match[1]);
-    await sleepAsync(0); // Staves off a race condition inside DebugClient.
     adapter.stdout.pipe(process.stderr);
     return port;
 }

@@ -23,6 +23,9 @@
 			"preLaunchTask": "lldb",
 			"pythonPath": "${workspaceFolder}/tools/debug_launcher.py",
 			"program": "${workspaceFolder}/tools/debug_stub.py",
+			"env": {
+				"LLDB_EXECUTABLE": "${workspaceFolder}/build/lldb/bin/lldb"
+			}
 		},
 		{
 			"name": "codelldb",

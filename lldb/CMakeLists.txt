@@ -27,7 +27,7 @@ elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     )
     set(LldbFiles
         bin/lldb.exe
-        lib/liblldb.dll
+        bin/liblldb.dll
         ${LldbPythonFiles}
     )
 else()
