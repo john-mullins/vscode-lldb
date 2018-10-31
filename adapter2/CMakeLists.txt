@@ -11,7 +11,7 @@ elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
 elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     set(CodeLldbFiles
         target/debug/codelldb.exe
-        target/debug/libcodelldb.dll
+        target/debug/codelldb.dll
     )
 else()
     message(FATAL_ERROR "${CMAKE_HOST_SYSTEM_NAME} not supported." )

@@ -6,6 +6,9 @@ if (NOT LLDB_ROOT)
 endif()
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}")
+set(CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY "${OUTPUT_DIRECTORY}")
 
 add_subdirectory(adapter2)
 add_subdirectory(lldb)
@@ -15,7 +18,7 @@ add_subdirectory(tests)
 
 ### Test
 
-set(MochaCommand ${CMAKE_SOURCE_DIR}/node_modules/mocha/bin/_mocha
+set(MochaCommand ${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha
     -u tdd
     --timeout 10000
     --exit
@@ -23,6 +26,9 @@ set(MochaCommand ${CMAKE_SOURCE_DIR}/node_modules/mocha/bin/_mocha
     \${MOCHA_ARGS}
     ${CMAKE_BINARY_DIR}/tests/tests
 )
+if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+    set(MochaCommand cmd.exe /C ${MochaCommand})
+endif()
 
 add_custom_target(test_adapter
     DEPENDS tests lldb debuggee
@@ -32,6 +38,6 @@ add_custom_target(test_adapter
 
 add_custom_target(test_adapter2
     DEPENDS tests codelldb debuggee
-    COMMAND USE_CODELLDB=1 ${MochaCommand}
+    COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 ${MochaCommand}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )

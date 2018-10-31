@@ -101,7 +101,7 @@ mod loading {
 #[cfg(windows)]
 mod loading {
     use std::ffi::CString;
-    use std::os::raw::{c_char, c_int, c_void};
+    use std::os::raw::{c_char, c_void};
     use std::path::Path;
 
     #[link(name = "kernel32")]
