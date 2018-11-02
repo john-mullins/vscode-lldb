@@ -1,16 +1,22 @@
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
-    set(CodeLldbFiles
+    set(CodeLldbExecutables
         target/debug/codelldb
+    )
+    set(CodeLldbFiles
         target/debug/libcodelldb.so
     )
 elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
-    set(CodeLldbFiles
+    set(CodeLldbExecutables
         target/debug/codelldb
+    )
+    set(CodeLldbFiles
         target/debug/libcodelldb.dylib
     )
 elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    set(CodeLldbFiles
+    set(CodeLldbExecutables
         target/debug/codelldb.exe
+    )
+    set(CodeLldbFiles
         target/debug/codelldb.dll
     )
 else()
@@ -19,7 +25,7 @@ endif()
 
 list(APPEND CodeLldbFiles adapter2/codelldb.py adapter2/value.py formatters/rust.py)
 
-foreach(File ${CodeLldbFiles})
+foreach(File ${CodeLldbFiles};${CodeLldbExecutables})
     get_filename_component(FileName ${File} NAME)
     set(OutputFile ${CMAKE_CURRENT_BINARY_DIR}/${FileName})
     add_custom_command(
@@ -38,4 +44,9 @@ add_custom_target(cargo_build
 
 add_custom_target(codelldb ALL
     DEPENDS lldb cargo_build ${OutFiles}
+)
+
+install(
+    PROGRAMS ${OutFiles}
+    DESTINATION build/adapter2
 )

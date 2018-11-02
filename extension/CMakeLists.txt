@@ -17,3 +17,8 @@ add_custom_command(
     COMMAND ${CMAKE_SOURCE_DIR}/node_modules/.bin/tsc --project ${CMAKE_CURRENT_SOURCE_DIR} --outDir ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Building extension"
 )
+
+install(
+    FILES ${Outputs}
+    DESTINATION build/extension
+)

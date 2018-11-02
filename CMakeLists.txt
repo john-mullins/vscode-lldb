@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}")
 set(CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY "${OUTPUT_DIRECTORY}")
+set(CMAKE_INSTALL_PREFIX $ENV{HOME}/.vscode/extensions/vscode-lldb)
 
 add_subdirectory(adapter2)
 add_subdirectory(lldb)
@@ -40,4 +41,18 @@ add_custom_target(test_adapter2
     DEPENDS tests codelldb debuggee
     COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 ${MochaCommand}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+### Install
+
+set(ExtensionRoot $ENV{HOME}/.vscode/extensions/vscode-lldb)
+install(CODE "file(REMOVE_RECURSE \"${ExtensionRoot}\")")
+
+install(
+    FILES package.json README.md MANUAL.md CHANGELOG.md
+    DESTINATION .
+)
+install(
+    DIRECTORY adapter images syntaxes formatters
+    DESTINATION .
 )
