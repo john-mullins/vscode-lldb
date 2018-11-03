@@ -30,7 +30,7 @@ elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
     )
 elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     find_file(MSDIA msdia140.dll
-        PATHS "C:/Program Files (x86)/Microsoft Visual/Studio"
+        PATHS "C:/Program Files (x86)/Microsoft Visual Studio"
     )
     add_copy_files(lldb_bin
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
@@ -38,7 +38,7 @@ elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     )
     add_copy_files(lldb_lib
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
-        FILES ${LLDB_ROOT}/lib/liblldb.dll ${MSDIA}
+        FILES ${LLDB_ROOT}/bin/liblldb.dll "${MSDIA}"
     )
     add_copy_directory(lldb_python
         ${LLDB_ROOT}/lib/site-packages

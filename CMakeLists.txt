@@ -29,9 +29,6 @@ set(MochaCommand ${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha
     \${MOCHA_ARGS}
     ${CMAKE_BINARY_DIR}/tests/tests
 )
-if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    set(MochaCommand cmd.exe /C ${MochaCommand})
-endif()
 
 add_custom_target(test_adapter
     DEPENDS tests lldb debuggee
