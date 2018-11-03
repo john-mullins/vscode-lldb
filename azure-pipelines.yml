@@ -2,13 +2,10 @@ variables:
   lldbBuildId: 197
 
   setenvLinux: |
-      export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-linux
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
   setenvOSX: |
-      export LLDB_ROOT=$(System.ArtifactsDirectory)/lldb-osx
       export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
   setenvWindows: |
-      set LLDB_ROOT=$(System.ArtifactsDirectory)\lldb-windows
       set PATH=%USERPROFILE%\.cargo\bin;%LLDB_ROOT%\bin;%PATH%
       set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
       set PYTHONPATH=%PYTHONHOME%\Lib;%PYTHONHOME%\DLLs
@@ -46,7 +43,9 @@ jobs:
       echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
       npm install
       chmod +x $LLDB_ROOT/bin/*
-      mkdir build && cd build && cmake ..
+      mkdir build
+      cd build
+      cmake -DLLDB_ROOT=$(System.ArtifactsDirectory)/lldb-linux ..
     displayName: 'Configure'
 
   - script: |
@@ -110,7 +109,9 @@ jobs:
       $(setenvOSX)
       npm install
       chmod +x $LLDB_ROOT/bin/*
-      mkdir build && cd build && cmake ..
+      mkdir build
+      cd build
+      cmake -DLLDB_ROOT=$(System.ArtifactsDirectory)/lldb-osx ..
     displayName: 'Configure'
 
   - script: |
@@ -179,7 +180,24 @@ jobs:
   - script: |
       $(setenvWindows)
       call npm install
-      mkdir build && cd build && cmake ..
+      choco install ninja
+    displayName: 'Install'
+
+  - task: BatchScript@1
+    inputs:
+      filename: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Enterprise\\Common7\\Tools\\VsDevCmd.bat"
+      arguments: -arch=amd64 -host_arch=amd64
+      modifyEnvironment: true
+    displayName: VsDevCmd
+
+  - script: |
+      mkdir build
+      cd build
+      cmake -GNinja^
+            -DLLDB_ROOT=$(System.ArtifactsDirectory)\lldb-windows^
+            -DCMAKE_C_COMPILER=cl^
+            -DCMAKE_CXX_COMPILER=cl^
+            ..
     displayName: 'Configure'
 
   - script: |
