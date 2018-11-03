@@ -257,14 +257,14 @@ int main(int argc, char *argv[])
         header_fn2(2);
 #if !defined(_WIN32)
     #if defined(__APPLE__)
-        void *hlib = dlopen("@executable_path/libdebuggee.dylib", RTLD_NOW);
+        void *hlib = dlopen("@executable_path/libdebuggee2.dylib", RTLD_NOW);
     #else
-        void *hlib = dlopen("./libdebuggee.so", RTLD_NOW);
+        void *hlib = dlopen("./libdebuggee2.so", RTLD_NOW);
     #endif
         if (!hlib) throw std::runtime_error(dlerror());
         auto sharedlib_entry = reinterpret_cast<void (*)()>(dlsym(hlib, "sharedlib_entry"));
 #else
-        HMODULE hlib = LoadLibraryA("debuggee.dll");
+        HMODULE hlib = LoadLibraryA("debuggee2.dll");
         if (!hlib) throw std::runtime_error("Could not load libdebuggee");
         auto sharedlib_entry = reinterpret_cast<void (*)()>(GetProcAddress(hlib, "sharedlib_entry"));
 #endif

@@ -6,12 +6,11 @@ else()
     set(WithDebugInfo -g)
 endif()
 
-# Shared libdebuggee.[so|dylib|dll]
-add_library(libdebuggee SHARED
+# Shared [lib]debuggee2.[so|dylib|dll]
+add_library(debuggee2 SHARED
     cpp/libdebuggee/libmain.cpp
 )
-target_compile_options(libdebuggee PRIVATE ${WithDebugInfo})
-set_target_properties(libdebuggee PROPERTIES OUTPUT_NAME "debuggee")
+target_compile_options(debuggee2 PRIVATE ${WithDebugInfo})
 
 # without debug info, for testing disassembly
 add_library(debuggee_nodebinfo STATIC
@@ -35,4 +34,4 @@ add_custom_target(rusttypes
     COMMAND rustc ${CMAKE_CURRENT_SOURCE_DIR}/rust/types.rs -g -o rusttypes
 )
 
-add_dependencies(debuggee libdebuggee rusttypes)
+add_dependencies(debuggee debuggee2 rusttypes)

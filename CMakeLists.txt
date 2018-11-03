@@ -35,12 +35,14 @@ add_custom_target(test_adapter
     DEPENDS tests lldb debuggee
     COMMAND ${MochaCommand}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    USES_TERMINAL
 )
 
 add_custom_target(test_adapter2
     DEPENDS tests codelldb debuggee
     COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 ${MochaCommand}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    USES_TERMINAL
 )
 
 ### Install
