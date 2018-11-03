@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
+include(cmake/CopyFiles.cmake)
+
 set(LLDB_ROOT $ENV{LLDB_ROOT} CACHE PATH "Root of LLDB build directory")
 if (NOT LLDB_ROOT)
     message(FATAL_ERROR "LLDB_ROOT not set." )

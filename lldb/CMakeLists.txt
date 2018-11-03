@@ -1,60 +1,57 @@
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
-    file(GLOB_RECURSE LldbPythonFiles
+    add_copy_files(lldb_bin
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
+        FILES ${LLDB_ROOT}/bin/lldb ${LLDB_ROOT}/bin/lldb-server
+    )
+    add_copy_files(lldb_lib
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib
+        FILES ${LLDB_ROOT}/lib/liblldb.so ${LLDB_ROOT}/lib/liblldb.so.8svn
+    )
+    add_copy_directory(lldb_python
+        ${LLDB_ROOT}/lib/python2.7/site-packages
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
         RELATIVE ${LLDB_ROOT}
-        "${LLDB_ROOT}/lib/python2.7/site-packages/*"
-    )
-    set(LldbExecutables
-        bin/lldb
-        bin/lldb-server
-    )
-    set(LldbFiles
-        lib/liblldb.so
-        lib/liblldb.so.8svn
-        ${LldbPythonFiles}
+        EXCLUDE "_lldb.*"
     )
 elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
-    file(GLOB_RECURSE LldbPythonFiles RELATIVE ${LLDB_ROOT}
-        "${LLDB_ROOT}/lib/python2.7/site-packages/*"
+    add_copy_files(lldb_bin
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
+        FILES ${LLDB_ROOT}/bin/lldb ${LLDB_ROOT}/bin/debugserver
     )
-    set(LldbExecutables
-        bin/lldb
-        bin/debugserver
+    add_copy_files(lldb_lib
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib
+        FILES ${LLDB_ROOT}/lib/liblldb.dylib ${LLDB_ROOT}/lib/liblldb.8.0.0.dylib
     )
-    set(LldbFiles
-        lib/liblldb.dylib
-        lib/liblldb.8.0.0.dylib
-        ${LldbPythonFiles}
+    add_copy_directory(lldb_python
+        ${LLDB_ROOT}/lib/python2.7/site-packages
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+        RELATIVE ${LLDB_ROOT}
+        EXCLUDE "_lldb.*"
     )
 elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    file(GLOB_RECURSE LldbPythonFiles RELATIVE ${LLDB_ROOT}
-        "${LLDB_ROOT}/lib/site-packages/*"
+    find_file(MSDIA msdia140.dll
+        PATHS "C:/Program Files (x86)/Microsoft Visual/Studio"
     )
-    set(LldbExecutables
-        bin/lldb.exe
+    add_copy_files(lldb_bin
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
+        FILES ${LLDB_ROOT}/bin/lldb.exe
     )
-    set(LldbFiles
-        bin/liblldb.dll
-        ${LldbPythonFiles}
+    add_copy_files(lldb_lib
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
+        FILES ${LLDB_ROOT}/lib/liblldb.dll ${MSDIA}
+    )
+    add_copy_directory(lldb_python
+        ${LLDB_ROOT}/lib/site-packages
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+        RELATIVE ${LLDB_ROOT}
+        EXCLUDE "_lldb.*"
     )
 else()
     message(FATAL_ERROR "${CMAKE_HOST_SYSTEM_NAME} not supported." )
 endif()
 
-foreach(File ${LldbFiles};${LldbExecutables})
-    if (NOT ${File} MATCHES "lldb/_lldb.*")
-        set(OutputFile ${CMAKE_CURRENT_BINARY_DIR}/${File})
-        add_custom_command(
-            OUTPUT ${OutputFile}
-            DEPENDS ${LLDB_ROOT}/${File}
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LLDB_ROOT}/${File} ${OutputFile}
-            COMMENT "Copying ${File}"
-        )
-        list(APPEND OutFiles ${OutputFile})
-    endif()
-endforeach()
-
 add_custom_target(lldb ALL
-    DEPENDS ${OutFiles}
+    DEPENDS lldb_bin lldb_lib lldb_python
 )
 
 foreach(File ${LldbExecutables})
