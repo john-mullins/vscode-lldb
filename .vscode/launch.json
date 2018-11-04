@@ -34,7 +34,7 @@
 			"request": "launch",
 			"program": "${workspaceFolder}/build/adapter2/codelldb",
 			"args": [
-				"--liblldb=${workspaceFolder}/build/lldb/lib/liblldb.so",
+				"--lldb=${workspaceFolder}/build/lldb",
 				"--multi-session",
 				"--port=4711"
 			],
@@ -69,32 +69,50 @@
 			"preLaunchTask": "codelldb",
 			"program": "${workspaceFolder}/build/adapter2/codelldb.exe",
 			"args": [
-				"--multi-session"
+				"--lldb=${workspaceFolder}/build/lldb",
+				"--multi-session",
+				"--port=4711"
 			],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
 			"environment": [
-				{
-					"name": "PATH",
-					"value": "${env:PATH};C:\\Python36-64;C:\\mingw-w64\\x86_64-8.1.0-win32-seh-rt_v6-rev0\\mingw64\\bin"
-				},
-				{
-					"name": "RUST_LOG",
-					"value": "error,codelldb=debug"
-				},
-				{
-					"name": "RUST_LOG_STYLE",
-					"value": "always"
-				},
-				{
-					"name": "RUST_BACKTRACE",
-					"value": "full"
-				},
+				{ "name": "PATH", "value":"${env:PATH};C:\\Python36-64;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\DIA SDK\\bin\\amd64" },
+				{ "name":"RUST_LOG", "value":"error,codelldb=debug"},
+				{ "name":"RUST_LOG_STYLE", "value":"always"},
+				{ "name":"RUST_BACKTRACE", "value":"full"},
 			],
 			//"externalConsole": true,
-			"sourceFileMap": {
-				"C:\\_work\\4\\s": "c:\\NW\\cpython"
-			}
+			"sourceFileMap": { "C:\\_work\\4\\s": "c:\\NW\\cpython" }
+		},
+		{
+			"name": "lldb cppvsdbg good",
+			"type": "cppvsdbg",
+			"request": "launch",
+			"program":  "c:\\NW\\ll\\build\\bin\\lldb.exe",
+			//"program": "${workspaceFolder}/out/adapter2/lldb.exe",
+			"args": ["-O", "script", "${workspaceRoot}/debuggee/out/debuggee.exe"],
+			"cwd": "${workspaceFolder}",
+			"environment": [
+				{ "name": "PATH", "value":"${env:PATH};C:\\Python36-64;C:\\mingw-w64\\x86_64-8.1.0-win32-seh-rt_v6-rev0\\mingw64\\bin" },
+				{ "name": "PYTHONVERBOSE", "value": "1" }
+			],
+			"externalConsole": true,
+			"sourceFileMap": { "C:\\_work\\4\\s": "c:\\NW\\cpython" }
+		},
+		{
+			"name": "lldb cppvsdbg bad",
+			"type": "cppvsdbg",
+			"request": "launch",
+			//"program":  "c:\\NW\\ll\\build\\bin\\lldb.exe",
+			"program": "${workspaceFolder}/out/adapter2/lldb.exe",
+			"args": ["-O", "script", "${workspaceRoot}/debuggee/out/debuggee.exe"],
+			"cwd": "${workspaceFolder}",
+			"environment": [
+				{ "name": "PATH", "value":"${env:PATH};C:\\Python36-64;C:\\mingw-w64\\x86_64-8.1.0-win32-seh-rt_v6-rev0\\mingw64\\bin" },
+				{ "name": "PYTHONVERBOSE", "value": "1" }
+			],
+			"externalConsole": true,
+			"sourceFileMap": { "C:\\_work\\4\\s": "c:\\NW\\cpython" }
 		},
 		{
 			"name": "test codelldb",

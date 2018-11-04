@@ -44,7 +44,7 @@
 			"name": "debuggee launch disassembly",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceRoot}/../build/debuggee/debuggee/debuggee",
+			"program": "${workspaceRoot}/../build/debuggee/debuggee",
 			"stopOnEntry": true,
 			"args": ["dasm"]
 		},
@@ -53,8 +53,7 @@
 			"type": "lldb",
 			"request": "launch",
 			"program": "${workspaceRoot}/../build/debuggee/debuggee",
-			"args": ["header"],
-			"cwd": "${workspaceFolder}/out"
+			"args": ["header"]
 		},
 		{
 			"name": "debuggee launch check_env",

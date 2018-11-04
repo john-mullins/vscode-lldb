@@ -55,7 +55,7 @@ export async function startDebugAdapter(
         adapterExe = util.getConfigNoDefault(config, 'executable') ||
             path.join(context.extensionPath, 'build/lldb/bin/lldb');
     } else {
-        adapterArgs = ["--liblldb=" + path.join(context.extensionPath, 'build/lldb/lib/liblldb.so')];
+        adapterArgs = ["--lldb=" + path.join(context.extensionPath, 'build/lldb')];
         adapterExe = path.join(context.extensionPath, 'build/adapter2/codelldb');
     }
     let adapter = spawnDebugger(adapterArgs, adapterExe, adapterEnv);

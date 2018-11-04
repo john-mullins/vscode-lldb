@@ -21,7 +21,7 @@ add_subdirectory(tests)
 
 ### Test
 
-set(MochaCommand ${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha
+set(MochaCommand ${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha.cmd
     -u tdd
     --timeout 10000
     --exit

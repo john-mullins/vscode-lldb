@@ -1,27 +1,28 @@
+cmake_minimum_required(VERSION 3.10)
 project(debuggee)
 
-if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    set(WithDebugInfo /Zi)
-else()
-    set(WithDebugInfo -g)
-endif()
+set(CMAKE_BUILD_TYPE Debug)
 
 # Shared [lib]debuggee2.[so|dylib|dll]
 add_library(debuggee2 SHARED
     cpp/libdebuggee/libmain.cpp
 )
-target_compile_options(debuggee2 PRIVATE ${WithDebugInfo})
 
 # without debug info, for testing disassembly
 add_library(debuggee_nodebinfo STATIC
     cpp/no_line_info.cpp
 )
+if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+    target_compile_options(debuggee_nodebinfo PRIVATE /DEBUG:None)
+else()
+    target_compile_options(debuggee_nodebinfo PRIVATE -g0)
+endif()
+
 
 # debuggee
 add_executable(debuggee
     cpp/../cpp/./debuggee.cpp
 )
-target_compile_options(debuggee PRIVATE ${WithDebugInfo})
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     target_link_libraries(debuggee debuggee_nodebinfo)

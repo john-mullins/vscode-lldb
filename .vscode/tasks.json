@@ -36,6 +36,7 @@
       "problemMatcher": [
         "$rustc"
       ],
+      "group": "build"
     },
     {
       "type": "shell",
