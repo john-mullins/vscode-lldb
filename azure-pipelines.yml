@@ -32,7 +32,7 @@ jobs:
       buildId: $(lldbBuildId)
       downloadType: single
       artifactName: 'lldb'
-      itemPattern: 'lldb-linux.zip'
+      itemPattern: 'lldb/lldb-linux.zip'
     displayName: 'Download LLDB'
 
   - script: |
@@ -100,7 +100,7 @@ jobs:
       buildId: $(lldbBuildId)
       downloadType: single
       artifactName: 'lldb'
-      itemPattern: 'lldb-osx.zip'
+      itemPattern: 'lldb/lldb-osx.zip'
     displayName: 'Download LLDB'
 
   - script: |
@@ -173,7 +173,7 @@ jobs:
       buildId: $(lldbBuildId)
       downloadType: single
       artifactName: 'lldb'
-      itemPattern: 'lldb-windows.zip'
+      itemPattern: 'lldb/lldb-windows.zip'
     displayName: 'Download LLDB'
 
   - script: |
