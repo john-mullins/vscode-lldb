@@ -2,11 +2,11 @@ variables:
   lldbBuildId: 212
 
   setenvLinux: |
-      export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
+      export PATH=$HOME/.cargo/bin:$PATH
   setenvOSX: |
-      export PATH=$HOME/.cargo/bin:$LLDB_ROOT/bin:$PATH
+      export PATH=$HOME/.cargo/bin:$PATH
   setenvWindows: |
-      set PATH=%USERPROFILE%\.cargo\bin;%LLDB_ROOT%\bin;%PATH%
+      set PATH=%USERPROFILE%\.cargo\bin;%PATH%
       set PYTHONHOME=%USEPYTHONVERSION_PYTHONLOCATION%
       set PYTHONPATH=%PYTHONHOME%\Lib;%PYTHONHOME%\DLLs
 
@@ -31,18 +31,19 @@ jobs:
       buildVersionToDownload: specific
       buildId: $(lldbBuildId)
       downloadType: single
-      artifactName: 'lldb-linux'
+      artifactName: 'lldb'
+      itemPattern: 'lldb-linux.zip'
     displayName: 'Download LLDB'
 
   - script: |
+      unzip $(System.ArtifactsDirectory)/lldb-linux.zip -d $(System.ArtifactsDirectory)/lldb-linux
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-unknown-linux-gnu
-    displayName: 'Install Rust'
+      echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
+      npm install
+    displayName: 'Install'
 
   - script: |
       $(setenvLinux)
-      echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
-      npm install
-      chmod +x $LLDB_ROOT/bin/*
       mkdir build
       cd build
       cmake -DLLDB_ROOT=$(System.ArtifactsDirectory)/lldb-linux ..
@@ -98,17 +99,18 @@ jobs:
       buildVersionToDownload: specific
       buildId: $(lldbBuildId)
       downloadType: single
-      artifactName: 'lldb-osx'
+      artifactName: 'lldb'
+      itemPattern: 'lldb-osx.zip'
     displayName: 'Download LLDB'
 
   - script: |
+      unzip $(System.ArtifactsDirectory)/lldb-osx.zip -d $(System.ArtifactsDirectory)/lldb-osx
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-apple-darwin
-    displayName: 'Install Rust'
+      npm install
+    displayName: 'Install'
 
   - script: |
       $(setenvOSX)
-      npm install
-      chmod +x $LLDB_ROOT/bin/*
       mkdir build
       cd build
       cmake -DLLDB_ROOT=$(System.ArtifactsDirectory)/lldb-osx ..
@@ -170,15 +172,13 @@ jobs:
       buildVersionToDownload: specific
       buildId: $(lldbBuildId)
       downloadType: single
-      artifactName: 'lldb-windows'
+      artifactName: 'lldb'
+      itemPattern: 'lldb-windows.zip'
     displayName: 'Download LLDB'
 
   - script: |
+      unzip $(System.ArtifactsDirectory)/lldb-windows.zip -d $(System.ArtifactsDirectory)/lldb-windows
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-msvc
-    displayName: 'Install Rust'
-
-  - script: |
-      $(setenvWindows)
       call npm install
       choco install ninja
     displayName: 'Install'
@@ -191,6 +191,7 @@ jobs:
     displayName: VsDevCmd
 
   - script: |
+      $(setenvWindows)
       mkdir build
       cd build
       cmake -GNinja^
