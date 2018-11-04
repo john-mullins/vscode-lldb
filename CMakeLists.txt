@@ -8,20 +8,51 @@ if (NOT LLDB_ROOT)
 endif()
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}")
-set(CMAKE_COMPILE_PDB_OUTPUT_DIRECTORY "${OUTPUT_DIRECTORY}")
 set(CMAKE_INSTALL_PREFIX $ENV{HOME}/.vscode/extensions/vscode-lldb)
 
 add_subdirectory(adapter2)
 add_subdirectory(lldb)
-add_subdirectory(debuggee)
 add_subdirectory(extension)
 add_subdirectory(tests)
 
+### Debuggee
+
+if (NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/debuggee)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR}/debuggee -G "${CMAKE_GENERATOR}"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/debuggee
+    )
+    add_custom_target(debuggee
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/debuggee
+    )
+else()
+    # On Windows we want to check both MSVC PDB and GNU DWARF debug info kinds.
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/debuggee-msvc)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR}/debuggee-msvc -G "${CMAKE_GENERATOR}" -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/debuggee-msvc
+    )
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/debuggee-gnu)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR}/debuggee-gnu -G "${CMAKE_GENERATOR}" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/debuggee-gnu
+    )
+    add_custom_target(debuggee
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/debuggee-msvc
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/debuggee-gnu
+    )
+endif()
+
 ### Test
 
-set(MochaCommand ${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha.cmd
+if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+    set(Mocha ${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha.cmd)
+else()
+    set(Mocha ${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha)
+endif()
+
+set(MochaCommand ${Mocha}
     -u tdd
     --timeout 10000
     --exit

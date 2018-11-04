@@ -407,17 +407,7 @@ async function startDebugAdapter(title: string): Promise<number> {
     if (process.env.USE_CODELLDB) {
         let stderr = await openFileAsync(adapterLog, 'a');
         let codelldb = path.join(projectDir, 'build/adapter2/codelldb');
-
-        let liblldb;
-        if (process.platform == 'linux')
-            liblldb = path.join(projectDir, 'build/lldb/lib/liblldb.so');
-        else if (process.platform == 'darwin')
-            liblldb = path.join(projectDir, 'build/lldb/lib/liblldb.dylib');
-        else
-            liblldb = path.join(projectDir, 'build/lldb/bin/liblldb.dll');
-
-        let args = ["--liblldb=" + liblldb];
-        adapter = cp.spawn(codelldb, args, {
+        adapter = cp.spawn(codelldb, ['--lldb=build/lldb'], {
             stdio: ['ignore', 'pipe', stderr],
             cwd: projectDir,
             env: Object.assign({ RUST_LOG: 'error,codelldb=debug' }, process.env)
