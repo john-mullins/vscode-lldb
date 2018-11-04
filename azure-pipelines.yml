@@ -219,7 +219,7 @@ jobs:
     displayName: 'Test2 GNU'
     condition: always()
 
-    - script: |
+  - script: |
       $(setenvWindows)
       set ADAPTER_LOG=%TEMP%\adapter.test.log
       cmake --build build --target test_adapter_msvc
