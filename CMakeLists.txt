@@ -30,12 +30,12 @@ else()
     # On Windows we want to check both MSVC PDB and GNU DWARF debug info kinds.
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/debuggee-msvc)
     execute_process(
-        COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR}/debuggee-msvc -G "${CMAKE_GENERATOR}" -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+        COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR}/debuggee -G "${CMAKE_GENERATOR}" -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/debuggee-msvc
     )
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/debuggee-gnu)
     execute_process(
-        COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR}/debuggee-gnu -G "${CMAKE_GENERATOR}" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
+        COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR}/debuggee -G "${CMAKE_GENERATOR}" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/debuggee-gnu
     )
     add_custom_target(debuggee
@@ -47,12 +47,10 @@ endif()
 ### Test
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    set(Mocha ${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha.cmd)
-else()
-    set(Mocha ${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha)
+    set(NodeProgExt .cmd)
 endif()
 
-set(MochaCommand ${Mocha}
+set(MochaCommand "${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha${NodeProgExt}"
     -u tdd
     --timeout 10000
     --exit
@@ -62,18 +60,35 @@ set(MochaCommand ${Mocha}
 )
 
 add_custom_target(test_adapter
-    DEPENDS tests lldb debuggee
-    COMMAND ${MochaCommand}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    USES_TERMINAL
-)
-
+    COMMAND echo "Foo"
+    DEPENDS tests lldb debuggee)
 add_custom_target(test_adapter2
-    DEPENDS tests codelldb debuggee
-    COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 ${MochaCommand}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    USES_TERMINAL
-)
+    COMMAND echo "Bar"
+    DEPENDS tests codelldb debuggee)
+
+if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+    add_custom_command(TARGET test_adapter
+        COMMAND ${CMAKE_COMMAND} -E env TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee-gnu ${MochaCommand}
+        COMMAND ${CMAKE_COMMAND} -E env TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee-msvc ${MochaCommand}
+        USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    add_custom_command(TARGET test_adapter2
+        COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee-gnu ${MochaCommand}
+        COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee-msvc ${MochaCommand}
+        USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+else()
+    add_custom_command(TARGET test_adapter
+        COMMAND ${CMAKE_COMMAND} -E env TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee ${MochaCommand}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    add_custom_command(TARGET test_adapter2
+        COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee ${MochaCommand}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+endif()
 
 ### Install
 

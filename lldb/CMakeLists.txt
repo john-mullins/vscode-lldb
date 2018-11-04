@@ -29,9 +29,15 @@ elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
         EXCLUDE "_lldb.*"
     )
 elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    find_file(MSDIA msdia140.dll
-        PATHS "C:/Program Files (x86)/Microsoft Visual Studio"
-    )
+    file(GLOB_RECURSE MSDIA "C:/Program Files (x86)/Microsoft Visual Studio/msdia140.dll")
+    list(FILTER MSDIA INCLUDE REGEX "amd64/msdia140.dll$")
+    if (NOT MSDIA)
+        message(WARNING "msdiaXXX.dll not found")
+        set(MSDIA)
+    else()
+        message ("Found MSDIA at ${MSDIA}")
+    endif()
+
     add_copy_files(lldb_bin
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
         FILES ${LLDB_ROOT}/bin/lldb.exe

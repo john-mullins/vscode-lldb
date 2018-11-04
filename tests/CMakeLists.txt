@@ -8,12 +8,16 @@ foreach(File ${Sources})
     list(APPEND Outputs ${CMAKE_CURRENT_BINARY_DIR}/tests/${FileName})
 endforeach()
 
+if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+    set(NodeProgExt .cmd)
+endif()
+
 add_custom_target(tests ALL
     DEPENDS extension ${CMAKE_CURRENT_SOURCE_DIR}/tsconfig.json ${Outputs}
 )
 add_custom_command(
     OUTPUT ${Outputs}
     DEPENDS ${Sources}
-    COMMAND ${CMAKE_SOURCE_DIR}/node_modules/.bin/tsc --project ${CMAKE_CURRENT_SOURCE_DIR} --outDir ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ${CMAKE_COMMAND} -E env "${CMAKE_SOURCE_DIR}/node_modules/.bin/tsc${NodeProgExt}" --project ${CMAKE_CURRENT_SOURCE_DIR} --outDir ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Building tests"
 )

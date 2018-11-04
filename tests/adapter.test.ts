@@ -8,14 +8,15 @@ import { format, promisify, inspect } from 'util';
 
 import * as util from '../extension/util';
 
-const projectDir = process.cwd();
+const sourceDir = process.cwd();
+const targetDir = process.env.TARGET_DIR || path.join(sourceDir, 'build', 'debuggee');
 
-const debuggee = path.join(projectDir, 'build', 'debuggee', 'debuggee');
-const debuggeeSource = path.normalize(path.join(projectDir, 'debuggee', 'cpp', 'debuggee.cpp'));
-const debuggeeHeader = path.normalize(path.join(projectDir, 'debuggee', 'cpp', 'dir1', 'debuggee.h'));
+const debuggee = path.join(targetDir, 'debuggee');
+const debuggeeSource = path.normalize(path.join(sourceDir, 'debuggee', 'cpp', 'debuggee.cpp'));
+const debuggeeHeader = path.normalize(path.join(sourceDir, 'debuggee', 'cpp', 'dir1', 'debuggee.h'));
 
-const rusttypes = path.join(projectDir, 'build', 'debuggee', 'rusttypes');
-const rusttypesSource = path.normalize(path.join(projectDir, 'debuggee', 'rust', 'types.rs'));
+const rusttypes = path.join(targetDir, 'rusttypes');
+const rusttypesSource = path.normalize(path.join(sourceDir, 'debuggee', 'rust', 'types.rs'));
 
 const openFileAsync = promisify(fs.open);
 
@@ -406,14 +407,14 @@ async function startDebugAdapter(title: string): Promise<number> {
     let adapter: cp.ChildProcess;
     if (process.env.USE_CODELLDB) {
         let stderr = await openFileAsync(adapterLog, 'a');
-        let codelldb = path.join(projectDir, 'build/adapter2/codelldb');
+        let codelldb = path.join(sourceDir, 'build/adapter2/codelldb');
         adapter = cp.spawn(codelldb, ['--lldb=build/lldb'], {
             stdio: ['ignore', 'pipe', stderr],
-            cwd: projectDir,
+            cwd: sourceDir,
             env: Object.assign({ RUST_LOG: 'error,codelldb=debug' }, process.env)
         });
     } else {
-        let lldb = path.join(projectDir, 'build/lldb/bin/lldb');
+        let lldb = path.join(sourceDir, 'build/lldb/bin/lldb');
         if (process.env.LLDB_EXECUTABLE) {
             lldb = process.env.LLDB_EXECUTABLE;
         }
@@ -422,12 +423,12 @@ async function startDebugAdapter(title: string): Promise<number> {
             logFile: adapterLog
         };
         let args = ['-b', '-Q',
-            '-O', format('command script import \'%s\'', path.join(projectDir, 'adapter')),
+            '-O', format('command script import \'%s\'', path.join(sourceDir, 'adapter')),
             '-O', format('script adapter.run_tcp_session(0 ,\'%s\')', new Buffer(JSON.stringify(params)).toString('base64'))
         ]
         adapter = cp.spawn(lldb, args, {
             stdio: ['ignore', 'pipe', 'pipe'],
-            cwd: projectDir,
+            cwd: sourceDir,
         });
     }
 

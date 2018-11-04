@@ -12,12 +12,11 @@ add_library(debuggee2 SHARED
 add_library(debuggee_nodebinfo STATIC
     cpp/no_line_info.cpp
 )
-if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     target_compile_options(debuggee_nodebinfo PRIVATE /DEBUG:None)
 else()
     target_compile_options(debuggee_nodebinfo PRIVATE -g0)
 endif()
-
 
 # debuggee
 add_executable(debuggee
