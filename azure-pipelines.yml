@@ -180,7 +180,6 @@ jobs:
       unzip $(System.ArtifactsDirectory)/lldb/lldb-windows.zip -d $(System.ArtifactsDirectory)/lldb-windows
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-msvc
       call npm install
-      choco install ninja
     displayName: 'Install'
 
   - task: BatchScript@1
@@ -194,7 +193,7 @@ jobs:
       $(setenvWindows)
       mkdir build
       cd build
-      cmake -GNinja^
+      cmake -G"Unix Makefiles"^
             -DLLDB_ROOT=$(System.ArtifactsDirectory)\lldb-windows^
             -DCMAKE_C_COMPILER=cl^
             -DCMAKE_CXX_COMPILER=cl^
@@ -209,15 +208,29 @@ jobs:
   - script: |
       $(setenvWindows)
       set ADAPTER_LOG=%TEMP%\adapter.test.log
-      cmake --build build --target test_adapter
-    displayName: 'Test1'
+      cmake --build build --target test_adapter_gnu
+    displayName: 'Test1 GNU'
     condition: always()
 
   - script: |
       $(setenvWindows)
       set ADAPTER_LOG=%TEMP%\adapter2.test.log
-      cmake --build build --target test_adapter2
-    displayName: 'Test2'
+      cmake --build build --target test_adapter2_gnu
+    displayName: 'Test2 GNU'
+    condition: always()
+
+    - script: |
+      $(setenvWindows)
+      set ADAPTER_LOG=%TEMP%\adapter.test.log
+      cmake --build build --target test_adapter_msvc
+    displayName: 'Test1 MSVC'
+    condition: always()
+
+  - script: |
+      $(setenvWindows)
+      set ADAPTER_LOG=%TEMP%\adapter2.test.log
+      cmake --build build --target test_adapter2_msvc
+    displayName: 'Test2 MSVC'
     condition: always()
 
   - script: |
