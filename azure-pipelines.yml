@@ -36,7 +36,7 @@ jobs:
     displayName: 'Download LLDB'
 
   - script: |
-      unzip $(System.ArtifactsDirectory)/lldb-linux.zip -d $(System.ArtifactsDirectory)/lldb-linux
+      unzip $(System.ArtifactsDirectory)/lldb/lldb-linux.zip -d $(System.ArtifactsDirectory)/lldb-linux
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-unknown-linux-gnu
       echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
       npm install
@@ -104,7 +104,7 @@ jobs:
     displayName: 'Download LLDB'
 
   - script: |
-      unzip $(System.ArtifactsDirectory)/lldb-osx.zip -d $(System.ArtifactsDirectory)/lldb-osx
+      unzip $(System.ArtifactsDirectory)/lldb/lldb-osx.zip -d $(System.ArtifactsDirectory)/lldb-osx
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-apple-darwin
       npm install
     displayName: 'Install'
@@ -177,7 +177,7 @@ jobs:
     displayName: 'Download LLDB'
 
   - script: |
-      unzip $(System.ArtifactsDirectory)/lldb-windows.zip -d $(System.ArtifactsDirectory)/lldb-windows
+      unzip $(System.ArtifactsDirectory)/lldb/lldb-windows.zip -d $(System.ArtifactsDirectory)/lldb-windows
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-msvc
       call npm install
       choco install ninja
