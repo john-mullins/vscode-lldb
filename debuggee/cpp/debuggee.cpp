@@ -130,7 +130,7 @@ void vars()
     {
         int a = 30;
         int b = 40;
-        float pi = 3.14159265;
+        float pi = 3.14159265f;
         static int sss = 555;
         const char c[] = "foobar";
         char buffer[10240] = {0};
@@ -143,14 +143,14 @@ void vars()
         Struct *null_s_ptr = nullptr;
         Struct *invalid_s_ptr = (Struct *)1;
         AnonUnion anon_union = { 4 };
-        DeepStruct ds1 = {13, "foo", 3.14,                   //
+        DeepStruct ds1 = {13, "foo", 3.14f,                  //
                           {i, 'd', 4.0f, {1, 2, 3, i}},      //
                           {{i * 2, 's', 5.0f, {4, 5, 6, i}}, //
                            {i * 3, 'x', 5.5f, {3, 5, 1, i}}}};
         std::vector<Struct> vec_struct(3, {i * 2, 'b', 4.0f});
         std::array<int, 5> stdarr_int;
-        std::map<int, float> ord_map = {{1, 2.34}, {2, 3.56}};
-        std::unordered_map<int, float> unord_map = {{1, 2.34}, {2, 3.56}};
+        std::map<int, float> ord_map = {{1, 2.34f}, {2, 3.56f}};
+        std::unordered_map<int, float> unord_map = {{1, 2.34f}, {2, 3.56f}};
         auto shared_ptr = std::make_shared<std::map<int, float>>(ord_map);
         Struct array_struct[5] = {{i * 2, 'b', 4.0f}};
 
