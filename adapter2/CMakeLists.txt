@@ -48,7 +48,12 @@ add_custom_target(codelldb ALL
     DEPENDS codelldb_bin codelldb_lib codelldb_python lldb
 )
 
-install(
-    PROGRAMS ${OutFiles}
-    DESTINATION build/adapter2
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    DESTINATION build
+    USE_SOURCE_PERMISSIONS
+    FILES_MATCHING
+    PATTERN "codelldb*"
+    PATTERN "libcodelldb*"
+    PATTERN "*.py"
+    PATTERN "CMake*" EXCLUDE
 )

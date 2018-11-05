@@ -60,8 +60,11 @@ add_custom_target(lldb ALL
     DEPENDS lldb_bin lldb_lib lldb_python
 )
 
-foreach(File ${LldbExecutables})
-    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${File} DESTINATION build/lldb/bin)
-endforeach()
-
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib DESTINATION build/lldb)
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
+    DESTINATION build/lldb
+    USE_SOURCE_PERMISSIONS
+)
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
+    DESTINATION build/lldb
+    USE_SOURCE_PERMISSIONS
+)

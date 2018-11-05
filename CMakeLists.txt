@@ -8,7 +8,7 @@ if (NOT LLDB_ROOT)
 endif()
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_INSTALL_PREFIX $ENV{HOME}/.vscode/extensions/vscode-lldb)
+set(CMAKE_INSTALL_PREFIX $ENV{HOME}/.vscode/extensions/vscode-lldb CACHE PATH "Install location")
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     set(NodeProgExt .cmd)
@@ -111,4 +111,5 @@ install(
 install(
     DIRECTORY adapter images syntaxes formatters
     DESTINATION .
+    PATTERN "*.pyc" EXCLUDE
 )
