@@ -179,6 +179,7 @@ jobs:
   - script: |
       unzip $(System.ArtifactsDirectory)/lldb/lldb-windows.zip -d $(System.ArtifactsDirectory)/lldb-windows
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-msvc
+      rustup toolchain add nightly-x86_64-pc-windows-gnu
       call npm install
     displayName: 'Install'
 
