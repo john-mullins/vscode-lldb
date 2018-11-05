@@ -153,12 +153,6 @@ jobs:
     vmImage: 'VS2017-Win2016'
 
   steps:
-  - script: |
-      where make
-      where gmake
-      make -version
-    displayName: 'Info'
-
   - task: NodeTool@0
     inputs:
       versionSpec: '8.x'
@@ -188,6 +182,7 @@ jobs:
       set PATH=%USERPROFILE%\.cargo\bin;%PATH%
       rustup toolchain add nightly-x86_64-pc-windows-gnu
       call npm install
+      choco install ninja
     displayName: 'Install'
 
   - task: BatchScript@1
@@ -201,7 +196,7 @@ jobs:
       $(setenvWindows)
       mkdir build
       cd build
-      cmake -G"Unix Makefiles"^
+      cmake -GNinja^
             -DLLDB_ROOT=$(System.ArtifactsDirectory)\lldb-windows^
             -DCMAKE_C_COMPILER=cl^
             -DCMAKE_CXX_COMPILER=cl^
