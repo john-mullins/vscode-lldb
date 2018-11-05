@@ -85,13 +85,13 @@ if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     add_custom_target(test_adapter2
         DEPENDS test_adapter2_gnu test_adapter2_msvc)
 else()
-    add_custom_command(TARGET test_adapter
+    add_custom_target(test_adapter
         DEPENDS debuggee lldb tests
         COMMAND ${CMAKE_COMMAND} -E env TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee ${MochaCommand}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
-    add_custom_command(TARGET test_adapter2
+    add_custom_target(test_adapter2
         DEPENDS debuggee codelldb tests
         COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee ${MochaCommand}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
