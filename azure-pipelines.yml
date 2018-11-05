@@ -153,6 +153,12 @@ jobs:
     vmImage: 'VS2017-Win2016'
 
   steps:
+  - script: |
+      where make
+      where gmake
+      make -version
+    displayName: 'Info'
+
   - task: NodeTool@0
     inputs:
       versionSpec: '8.x'
