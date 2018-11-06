@@ -80,7 +80,7 @@ suite('Adapter tests', () => {
             let stopAsync = waitForStopEvent();
             launch({ program: debuggee, stopOnEntry: true });
             let stopEvent = await stopAsync;
-            if (process.platform.startsWith('win'))
+            if (/windows/.test(triple))
                 assert.equal(stopEvent.body.reason, 'exception');
             else
                 assert.equal(stopEvent.body.reason, 'signal');

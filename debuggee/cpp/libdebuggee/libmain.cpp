@@ -1,7 +1,7 @@
 #include "debuggee.h"
 
 extern "C"
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 __declspec(dllexport)
 #endif
 void sharedlib_entry() {

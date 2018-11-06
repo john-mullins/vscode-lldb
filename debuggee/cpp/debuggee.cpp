@@ -264,7 +264,11 @@ int main(int argc, char *argv[])
         if (!hlib) throw std::runtime_error(dlerror());
         auto sharedlib_entry = reinterpret_cast<void (*)()>(dlsym(hlib, "sharedlib_entry"));
 #else
+    #if defined(_MSC_VER)
         HMODULE hlib = LoadLibraryA("debuggee2.dll");
+    #else
+        HMODULE hlib = LoadLibraryA("libdebuggee2.dll");
+    #endif
         if (!hlib) throw std::runtime_error("Could not load libdebuggee");
         auto sharedlib_entry = reinterpret_cast<void (*)()>(GetProcAddress(hlib, "sharedlib_entry"));
 #endif

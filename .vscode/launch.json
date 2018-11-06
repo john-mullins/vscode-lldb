@@ -155,11 +155,12 @@
 				"--timeout", "999999",
 				"--colors",
 				"--exit",
-				//"-g", "run program",
+				"-g", "stop on a breakpoint",
 				"build/tests/tests"
 			],
 			"env": {
-				"USE_CODELLDB": "1",
+				//"USE_CODELLDB": "1",
+				"TARGET_TRIPLE": "x86_64-pc-windows-gnu",
 				"RUST_LOG": "error,codelldb=debug",
 				"RUST_BACKTRACE": "full"
 			},
