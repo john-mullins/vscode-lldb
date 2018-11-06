@@ -327,7 +327,7 @@ suite('Adapter tests', () => {
                 // enc_enum2: 'Nothing',
                 // opt_str1: 'Some("string")',
                 // opt_str2: 'None',
-                tuple_struct: '(3, "xxx", -3)',
+                // tuple_struct: '(3, "xxx", -3)',
                 reg_struct: '{a:1, c:12}',
                 reg_struct_ref: '{a:1, c:12}',
                 // opt_reg_struct1: 'Some({...})',
