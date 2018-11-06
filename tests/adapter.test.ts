@@ -8,8 +8,17 @@ import { format, promisify, inspect } from 'util';
 
 import * as util from '../extension/util';
 
+const triple = process.env.TARGET_TRIPLE;
+
 const sourceDir = process.cwd();
-const targetDir = process.env.TARGET_DIR || path.join(sourceDir, 'build', 'debuggee');
+
+var targetDir = path.join(sourceDir, 'build');
+if (triple.endsWith('pc-windows-gnu'))
+    targetDir = path.join(targetDir, 'debuggee-gnu');
+else if (triple.endsWith('pc-windows-msvc'))
+    targetDir = path.join(targetDir, 'debuggee-msvc');
+else
+    targetDir = path.join(targetDir, 'debuggee');
 
 const debuggee = path.join(targetDir, 'debuggee');
 const debuggeeSource = path.normalize(path.join(sourceDir, 'debuggee', 'cpp', 'debuggee.cpp'));
@@ -78,9 +87,6 @@ suite('Adapter tests', () => {
         });
 
         test('stop on a breakpoint', async () => {
-            if (process.platform == 'win32') {
-                return;
-            }
             let bpLineSource = findMarker(debuggeeSource, '#BP1');
             let bpLineHeader = findMarker(debuggeeHeader, '#BPH1');
             let setBreakpointAsyncSource = setBreakpoint(debuggeeSource, bpLineSource);
@@ -141,7 +147,7 @@ suite('Adapter tests', () => {
                 empty_str: '""',
                 wstr1: 'L"Превед йожэг!"',
                 wstr2: 'L"Ḥ̪͔̦̺E͍̹̯̭͜ C̨͙̹̖̙O̡͍̪͖ͅM̢̗͙̫̬E̜͍̟̟̮S̢̢̪̘̦!"',
-                invalid_utf8: process.platform != 'win32' ? '"ABC\uFFFD\\x01\uFFFDXYZ' : '"ABC\uDCFF\\x01\uDCFEXYZ',
+                invalid_utf8: /windows/.test(triple) ? '"ABC\uDCFF\\x01\uDCFEXYZ' : '"ABC\uFFFD\\x01\uFFFDXYZ',
                 anon_union: {
                     '': { x: 4, y: 4 }
                 }
@@ -304,7 +310,7 @@ suite('Adapter tests', () => {
             let frames = await dc.stackTraceRequest({ threadId: stoppedEvent.body.threadId, startFrame: 0, levels: 1 });
             let scopes = await dc.scopesRequest({ frameId: frames.body.stackFrames[0].id });
 
-            let foo_bar = (process.platform != 'win32') ? '"foo/bar"' : '"foo\\bar"';
+            let foo_bar = /windows/.test(triple) ? '"foo\\bar"' : '"foo/bar"';
             await compareVariables(scopes.body.scopes[0].variablesReference, {
                 int: 17,
                 float: 3.14159274,

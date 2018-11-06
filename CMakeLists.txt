@@ -62,22 +62,22 @@ set(MochaCommand "${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha${NodeProgExt}"
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     add_custom_target(test_adapter_gnu
         DEPENDS debuggee lldb tests
-        COMMAND ${CMAKE_COMMAND} -E env TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee-gnu ${MochaCommand}
+        COMMAND ${CMAKE_COMMAND} -E env TARGET_TRIPLE=x86_64-pc-windows-gnu ${MochaCommand}
         USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
     add_custom_target(test_adapter2_gnu
         DEPENDS debuggee codelldb tests
-        COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee-gnu ${MochaCommand}
+        COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 TARGET_TRIPLE=x86_64-pc-windows-gnu ${MochaCommand}
         USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
     add_custom_target(test_adapter_msvc
         DEPENDS debuggee lldb tests
-        COMMAND ${CMAKE_COMMAND} -E env TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee-msvc ${MochaCommand}
+        COMMAND ${CMAKE_COMMAND} -E env TARGET_TRIPLE=x86_64-pc-windows-msvc ${MochaCommand}
         USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
     add_custom_target(test_adapter2_msvc
         DEPENDS debuggee codelldb tests
-        COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee-msvc ${MochaCommand}
+        COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 TARGET_TRIPLE=x86_64-pc-windows-msvc ${MochaCommand}
         USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
     add_custom_target(test_adapter
@@ -87,13 +87,13 @@ if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 else()
     add_custom_target(test_adapter
         DEPENDS debuggee lldb tests
-        COMMAND ${CMAKE_COMMAND} -E env TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee ${MochaCommand}
+        COMMAND ${CMAKE_COMMAND} -E env TARGET_TRIPLE=x86_64-unknown-linux-gnu ${MochaCommand}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
     add_custom_target(test_adapter2
         DEPENDS debuggee codelldb tests
-        COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/debuggee ${MochaCommand}
+        COMMAND ${CMAKE_COMMAND} -E env USE_CODELLDB=1 TARGET_TRIPLE=x86_64-unknown-linux-gnu ${MochaCommand}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
@@ -101,8 +101,7 @@ endif()
 
 ### Install
 
-set(ExtensionRoot $ENV{HOME}/.vscode/extensions/vscode-lldb)
-install(CODE "file(REMOVE_RECURSE \"${ExtensionRoot}\")")
+install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}\")")
 
 install(
     FILES package.json README.md MANUAL.md CHANGELOG.md

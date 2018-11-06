@@ -11,9 +11,6 @@ else:
     to_lldb_str = str
     xrange = range
 
-rust_enabled = False
-first_tuple_field = '__0'
-
 log = logging.getLogger('rust')
 
 module = sys.modules[__name__]
@@ -28,6 +25,7 @@ def initialize_category(debugger):
     rust_category.SetEnabled(True)
 
     #attach_summary_to_type(get_array_summary, r'^.*\[[0-9]+\]$', True)
+    attach_summary_to_type(get_tuple_summary, r'^\(.*\)$', True)
 
     attach_synthetic_to_type(StrSliceSynthProvider, '&str')
 
@@ -83,7 +81,7 @@ def analyze_type(obj_type):
         first_field_name = obj_type.GetFieldAtIndex(0).GetName()
         if first_field_name == ENUM_DISCRIMINANT: # Enum variant
             attach_summary_to_type(get_enum_variant_summary, obj_type.GetDisplayTypeName())
-        elif first_field_name == first_tuple_field: # Tuple variant or tuple struct
+        elif first_field_name in ['0', '__0']: # Tuple variant or tuple struct
             attach_summary_to_type(get_tuple_summary, obj_type.GetDisplayTypeName())
 
 def attach_synthetic_to_type(synth_class, type_name, is_regex=False):
@@ -120,6 +118,14 @@ def gcm(valobj, *chain):
     for name in chain:
         valobj = valobj.GetChildMemberWithName(name)
     return valobj
+
+# Rust-enabled LLDB using DWARF debug info will strip tuple field prefixes.
+# If LLDB is not Rust-enalbed or if using PDB debug info, they will be underscore-prefixed.
+def get_first_tuple_field(valobj):
+    child = valobj.GetChildMemberWithName('0')
+    if not child.IsValid():
+        child = valobj.GetChildMemberWithName('__0')
+    return child
 
 def string_from_ptr(pointer, length):
     if length <= 0:
@@ -345,7 +351,7 @@ class ArrayLikeSynthProvider(RustSynthProvider):
 class StdVectorSynthProvider(ArrayLikeSynthProvider):
     def ptr_and_len(self, vec):
         return (
-            gcm(vec, 'buf', 'ptr', 'pointer', first_tuple_field),
+            get_first_tuple_field(gcm(vec, 'buf', 'ptr', 'pointer')),
             gcm(vec, 'len').GetValueAsUnsigned()
         )
     def get_summary(self):
@@ -388,7 +394,7 @@ class StdStringSynthProvider(StringLikeSynthProvider):
     def ptr_and_len(self, valobj):
         vec = gcm(valobj, 'vec')
         return (
-            gcm(vec, 'buf', 'ptr', 'pointer', first_tuple_field),
+            get_first_tuple_field(gcm(vec, 'buf', 'ptr', 'pointer')),
             gcm(vec, 'len').GetValueAsUnsigned()
         )
 
@@ -407,7 +413,7 @@ class StdOsStringSynthProvider(StringLikeSynthProvider):
         if tmp.IsValid():
             vec = tmp
         return (
-            gcm(vec, 'buf', 'ptr', 'pointer', first_tuple_field),
+            get_first_tuple_field(gcm(vec, 'buf', 'ptr', 'pointer')),
             gcm(vec, 'len').GetValueAsUnsigned()
         )
 
@@ -471,7 +477,7 @@ class StdRefCountedSynthProvider(DerefSynthProvider):
 
 class StdRcSynthProvider(StdRefCountedSynthProvider):
     def initialize(self):
-        inner = gcm(self.valobj, 'ptr', 'pointer', first_tuple_field)
+        inner = get_first_tuple_field(gcm(self.valobj, 'ptr', 'pointer'))
         self.strong = gcm(inner, 'strong', 'value', 'value').GetValueAsUnsigned()
         self.weak = gcm(inner, 'weak', 'value', 'value').GetValueAsUnsigned()
         if self.strong > 0:
@@ -482,7 +488,7 @@ class StdRcSynthProvider(StdRefCountedSynthProvider):
 
 class StdArcSynthProvider(StdRefCountedSynthProvider):
     def initialize(self):
-        inner = gcm(self.valobj, 'ptr', 'pointer', first_tuple_field)
+        inner = get_first_tuple_field(gcm(self.valobj, 'ptr', 'pointer'))
         self.strong = gcm(inner, 'strong', 'v', 'value').GetValueAsUnsigned()
         self.weak = gcm(inner, 'weak', 'v', 'value').GetValueAsUnsigned()
         if self.strong > 0:
@@ -519,15 +525,12 @@ class StdRefCellBorrowSynthProvider(DerefSynthProvider):
 ##################################################################################################################
 
 def __lldb_init_module(debugger_obj, internal_dict):
-    global rust_enabled, first_tuple_field
-    if 'rust-enabled' in debugger_obj.GetVersionString():
-        rust_enabled = True
-        first_tuple_field = '0'
+    # else:
+    #     try:
+    #         import debugger
+    #         debugger.register_type_callback(analyze_type, lldb.eLanguageTypeRust, lldb.eTypeClassUnion | lldb.eTypeClassStruct)
+    #     except Exception as err:
+    #         log.error('### %s', err)
 
     initialize_category(debugger_obj)
 
-    try:
-        import debugger
-        debugger.register_type_callback(analyze_type, lldb.eLanguageTypeRust, lldb.eTypeClassUnion | lldb.eTypeClassStruct)
-    except Exception as err:
-        log.error('### %s', err)
