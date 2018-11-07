@@ -70,6 +70,7 @@ suite('Adapter tests', () => {
             });
             console.error('------------------');
         }
+        await deleteFileIfExists(adapterLog);
     });
 
     suite('Basic', () => {
@@ -622,5 +623,8 @@ function withTimeout<T>(timeoutMillis: number, promise: Promise<T>): Promise<T> 
 }
 
 async function deleteFileIfExists(filename: string) {
-    return new Promise(resolve => fs.unlink(filename, err => resolve()));
+    return new Promise(resolve => fs.unlink(filename, err => {
+        if (err) console.log('Could not delete %s: %s', filename, err);
+        resolve();
+    }));
 }

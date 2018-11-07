@@ -182,6 +182,9 @@ jobs:
       set PATH=%USERPROFILE%\.cargo\bin;%PATH%
       rustup toolchain add nightly-x86_64-pc-windows-gnu
       curl https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip -o ninja-win.zip
+      echo ------
+      where ninja
+      echo ------
       unzip ninja-win.zip -d %USERPROFILE%\.cargo\bin
       call npm install
     displayName: 'Install'
