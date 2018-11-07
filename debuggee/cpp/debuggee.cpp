@@ -274,6 +274,11 @@ int main(int argc, char *argv[])
 #endif
         sharedlib_entry();
     }
+    else if (testcase == "header_nodylib")
+    {
+        header_fn1(1);
+        header_fn2(2);
+    }
     else if (testcase == "mandelbrot")
     {
         mandelbrot();

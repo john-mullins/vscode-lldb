@@ -28,42 +28,60 @@ const rusttypes = path.join(targetDir, 'rusttypes');
 const rusttypesSource = path.normalize(path.join(sourceDir, 'debuggee', 'rust', 'types.rs'));
 
 const openFileAsync = promisify(fs.open);
+const truncateFileAsync = promisify(fs.truncate);
 
+const adapterLog = 'adapter.log';
 let dc = new DebugClient('', '', 'lldb');
-let testId = 0;
+let debugAdapter: AdapterProcess = null;
+
 
 suite('Adapter tests', () => {
 
-    suiteSetup(async () => {
-        await new Promise(resolve => fs.unlink(getAdapterLogFileName(), resolve));
+    suiteSetup(function () {
     });
-    suiteTeardown(() => {
+    suiteTeardown(function () {
         dc.stop();
     });
 
-    setup(async () => {
+    setup(async function () {
         let port = null;
         if (process.env.DEBUG_SERVER) {
             port = parseInt(process.env.DEBUG_SERVER)
         } else {
-            ++testId;
-            port = await startDebugAdapter(testId.toString());
+            await truncateFileAsync(adapterLog);
+            debugAdapter = await startDebugAdapter(adapterLog);
         }
-        await dc.start(port);
+        await dc.start(debugAdapter.port);
     });
-    teardown(async () => {
-        await dc.stop();
+
+    teardown(async function () {
+        try {
+            await withTimeout(3000, dc.stop());
+        } catch (e) {
+            if (debugAdapter) {
+                console.log('Debug adapter did not stop after shutdown request.')
+            }
+        }
+        if (this.currentTest.state == 'failed') {
+            console.error('--- Adapter log ---');
+            let log = fs.createReadStream(adapterLog);
+            await new Promise(resolve => {
+                log.pipe(process.stderr);
+                log.on('end', resolve);
+            });
+            console.error('------------------');
+        }
     });
 
     suite('Basic', () => {
 
-        test('run program to the end', async () => {
+        test('run program to the end', async function () {
             let terminatedAsync = dc.waitForEvent('terminated');
             await launch({ name: 'run program to the end', program: debuggee });
             await terminatedAsync;
         });
 
-        test('run program with modified environment', async () => {
+        test('run program with modified environment', async function () {
             let waitExitedAsync = dc.waitForEvent('exited');
             await launch({
                 name: 'run program with modified environment',
@@ -76,7 +94,7 @@ suite('Adapter tests', () => {
             assert.equal(exitedEvent.body.exitCode, 1);
         });
 
-        test('stop on entry', async () => {
+        test('stop on entry', async function () {
             let stopAsync = waitForStopEvent();
             launch({ program: debuggee, stopOnEntry: true });
             let stopEvent = await stopAsync;
@@ -86,15 +104,20 @@ suite('Adapter tests', () => {
                 assert.equal(stopEvent.body.reason, 'signal');
         });
 
-        test('stop on a breakpoint', async () => {
+        test('stop on a breakpoint', async function () {
             let bpLineSource = findMarker(debuggeeSource, '#BP1');
             let bpLineHeader = findMarker(debuggeeHeader, '#BPH1');
             let setBreakpointAsyncSource = setBreakpoint(debuggeeSource, bpLineSource);
             let setBreakpointAsyncHeader = setBreakpoint(debuggeeHeader, bpLineHeader);
+
             let waitForExitAsync = dc.waitForEvent('exited');
             let waitForStopAsync = waitForStopEvent();
 
-            await launch({ name: 'stop on a breakpoint', program: debuggee, args: ['header'], cwd: path.dirname(debuggee) });
+            let testcase = triple.endsWith('windows-gnu') ?
+                'header_nodylib' : // FIXME: loading dylib triggers a weird access violation on windows-gnu
+                'header';
+
+            await launch({ name: 'stop on a breakpoint', program: debuggee, args: [testcase], cwd: path.dirname(debuggee) });
             await setBreakpointAsyncSource;
             await setBreakpointAsyncHeader;
 
@@ -107,10 +130,10 @@ suite('Adapter tests', () => {
             await verifyLocation(stopEvent.body.threadId, debuggeeHeader, bpLineHeader);
 
             await dc.continueRequest({ threadId: 0 });
-            await waitForExitAsync;
+            await withTimeout(1000, waitForExitAsync);
         });
 
-        test('page stack', async () => {
+        test('page stack', async function () {
             let bpLine = findMarker(debuggeeSource, '#BP2');
             let setBreakpointAsync = setBreakpoint(debuggeeSource, bpLine);
             let waitForStopAsync = waitForStopEvent();
@@ -125,7 +148,7 @@ suite('Adapter tests', () => {
             assert.equal(response4.body.variables[0].value, '20');
         });
 
-        test('variables', async () => {
+        test('variables', async function () {
             let bpLine = findMarker(debuggeeSource, '#BP3');
             let setBreakpointAsync = setBreakpoint(debuggeeSource, bpLine);
             let stoppedEvent = await launchAndWaitForStop({ name: 'variables', program: debuggee, args: ['vars'] });
@@ -175,7 +198,7 @@ suite('Adapter tests', () => {
             await compareVariables(localsRef, { a: 100 });
         });
 
-        test('expressions', async () => {
+        test('expressions', async function () {
             let bpLine = findMarker(debuggeeSource, '#BP3');
             let setBreakpointAsync = setBreakpoint(debuggeeSource, bpLine);
             let stoppedEvent = await launchAndWaitForStop({ name: 'expressions', program: debuggee, args: ['vars'] });
@@ -204,7 +227,7 @@ suite('Adapter tests', () => {
             }
         });
 
-        test('conditional breakpoint 1', async () => {
+        test('conditional breakpoint 1', async function () {
             let bpLine = findMarker(debuggeeSource, '#BP3');
             let setBreakpointAsync = setBreakpoint(debuggeeSource, bpLine, "i == 5");
 
@@ -214,7 +237,7 @@ suite('Adapter tests', () => {
             await compareVariables(localsRef, { i: 5 });
         });
 
-        test('conditional breakpoint 2', async () => {
+        test('conditional breakpoint 2', async function () {
             let bpLine = findMarker(debuggeeSource, '#BP3');
             let setBreakpointAsync = setBreakpoint(debuggeeSource, bpLine, "/py $i == 5");
 
@@ -224,7 +247,7 @@ suite('Adapter tests', () => {
             await compareVariables(localsRef, { i: 5 });
         });
 
-        test('disassembly', async () => {
+        test('disassembly', async function () {
             let setBreakpointAsync = setFnBreakpoint('/re disassembly1');
             let stoppedEvent = await launchAndWaitForStop({ name: 'disassembly', program: debuggee, args: ['dasm'] });
             let stackTrace = await dc.stackTraceRequest({
@@ -272,14 +295,14 @@ suite('Adapter tests', () => {
             debuggeeProc.kill()
         })
 
-        test('attach by pid', async () => {
+        test('attach by pid', async function () {
             let asyncWaitStopped = waitForStopEvent();
             let attachResp = await attach({ program: debuggee, pid: debuggeeProc.pid, stopOnEntry: true });
             assert(attachResp.success);
             await asyncWaitStopped;
         });
 
-        test('attach by name', async () => {
+        test('attach by name', async function () {
             let asyncWaitStopped = waitForStopEvent();
             let attachResp = await attach({ program: debuggee, stopOnEntry: true });
             assert(attachResp.success);
@@ -288,7 +311,7 @@ suite('Adapter tests', () => {
 
         // Does not seem to work on OSX either :(
         // if (process.platform == 'darwin') {
-        //     test('attach by name + waitFor', async () => {
+        //     test('attach by name + waitFor', async function() {
         //         let asyncWaitStopped = waitForStopEvent();
         //         let attachResp = await attach({ program: debuggee, waitFor: true, stopOnEntry: true });
         //         assert(attachResp.success);
@@ -299,7 +322,7 @@ suite('Adapter tests', () => {
     })
 
     suite('Rust tests', () => {
-        test('variables', async () => {
+        test('variables', async function () {
             let bpLine = findMarker(rusttypesSource, '#BP1');
             let setBreakpointAsync = setBreakpoint(rusttypesSource, bpLine);
             let waitForStopAsync = waitForStopEvent();
@@ -403,16 +426,15 @@ function getAdapterLogFileName(): string {
         return 'adapter.test.log';
 }
 
-async function startDebugAdapter(title: string): Promise<number> {
-    let adapterLog = getAdapterLogFileName();
+interface AdapterProcess {
+    process: cp.ChildProcess,
+    port: number
+}
 
-    let log = fs.createWriteStream(adapterLog, { flags: 'a' });
-    await new Promise(resolve => log.write(format('---------- %s\n', title), resolve));
-    log.close();
-
+async function startDebugAdapter(adapterLog: string): Promise<AdapterProcess> {
     let adapter: cp.ChildProcess;
     if (process.env.USE_CODELLDB) {
-        let stderr = await openFileAsync(adapterLog, 'a');
+        let stderr = await openFileAsync(adapterLog, 'w');
         let codelldb = path.join(sourceDir, 'build/adapter2/codelldb');
         adapter = cp.spawn(codelldb, ['--lldb=build/lldb'], {
             stdio: ['ignore', 'pipe', stderr],
@@ -442,7 +464,7 @@ async function startDebugAdapter(title: string): Promise<number> {
     let match = await util.waitForPattern(adapter, adapter.stdout, regex);
     let port = parseInt(match[1]);
     adapter.stdout.pipe(process.stderr);
-    return port;
+    return { process: adapter, port: port };
 }
 
 function findMarker(file: string, marker: string): number {
