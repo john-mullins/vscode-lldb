@@ -28,6 +28,7 @@ const rusttypes = path.join(targetDir, 'rusttypes');
 const rusttypesSource = path.normalize(path.join(sourceDir, 'debuggee', 'rust', 'types.rs'));
 
 const openFileAsync = promisify(fs.open);
+const sleepAsync = promisify(setTimeout);
 
 const adapterLog = 'adapter.log';
 let dc = new DebugClient('', '', 'lldb');
@@ -623,8 +624,10 @@ function withTimeout<T>(timeoutMillis: number, promise: Promise<T>): Promise<T> 
 }
 
 async function deleteFileIfExists(filename: string) {
-    return new Promise(resolve => fs.unlink(filename, err => {
-        if (err) console.log('Could not delete %s: %s', filename, err);
-        resolve();
-    }));
+    for (let i = 0; i < 100; ++i) {
+        let err = await new Promise<NodeJS.ErrnoException>(resolve => fs.unlink(filename, err => resolve(err)));
+        if (!err || err.code == 'EEXIST') return;
+        console.log('Could not delete %s: %s', filename, err);
+        await sleepAsync(100);
+    }
 }
