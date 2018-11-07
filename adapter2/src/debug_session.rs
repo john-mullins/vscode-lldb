@@ -898,7 +898,7 @@ impl DebugSession {
             };
             attach_info.set_process_id(pid);
         } else if let Some(program) = args.program {
-            attach_info.set_executable(&program);
+            attach_info.set_executable(&self.find_executable(&program));
         } else {
             unreachable!()
         }
@@ -937,6 +937,20 @@ impl DebugSession {
             Err(err) => return Err(err.into()),
         };
         Ok(target)
+    }
+
+    fn find_executable<'a>(&self, program: &'a str) -> Cow<'a , str> {
+        // On Windows, also try program + '.exe'
+        // TODO: use selected platform instead of cfg!(windows)
+        if cfg!(windows) {
+            if !Path::new(program).is_file() {
+                let program = format!("{}.exe", program);
+                if Path::new(&program).is_file() {
+                    return program.into();
+                }
+            }
+        }
+        program.into()
     }
 
     fn configure_stdio(&mut self, args: &LaunchRequestArguments, launch_info: &mut SBLaunchInfo) -> Result<(), Error> {

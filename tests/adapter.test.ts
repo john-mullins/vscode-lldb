@@ -9,6 +9,7 @@ import { format, promisify, inspect } from 'util';
 import * as util from '../extension/util';
 
 const triple = process.env.TARGET_TRIPLE;
+const useCodeLLDB = !!process.env.USE_CODELLDB;
 
 const sourceDir = process.cwd();
 
@@ -28,21 +29,26 @@ const rusttypes = path.join(targetDir, 'rusttypes');
 const rusttypesSource = path.normalize(path.join(sourceDir, 'debuggee', 'rust', 'types.rs'));
 
 const openFileAsync = promisify(fs.open);
-const deleteFileAsync = promisify(fs.unlink);
-const renameFileAsync = promisify(fs.rename);
-const sleepAsync = promisify(setTimeout);
 
-const adapterLog = 'adapter.log';
+let testId = 0;
+let logDir: string;
+let adapterLog: string;
 let dc = new DebugClient('', '', 'lldb');
 let debugAdapter: AdapterProcess = null;
-
 
 suite('Adapter tests', () => {
 
     suiteSetup(function () {
+        logDir = fs.mkdtempSync(path.join(process.env.TMP, 'tests.'));
     });
+
     suiteTeardown(function () {
         dc.stop();
+        try {
+            removeDirSync(logDir);
+        } catch (err) {
+            console.log('Could not remove %s : %s', logDir, err)
+        }
     });
 
     setup(async function () {
@@ -50,7 +56,7 @@ suite('Adapter tests', () => {
         if (process.env.DEBUG_SERVER) {
             port = parseInt(process.env.DEBUG_SERVER)
         } else {
-            await getRidOfFile(adapterLog);
+            adapterLog = path.join(logDir, format('adapter%d.log', ++testId));
             debugAdapter = await startDebugAdapter(adapterLog);
         }
         await dc.start(debugAdapter.port);
@@ -73,7 +79,6 @@ suite('Adapter tests', () => {
             });
             console.error('------------------');
         }
-        await getRidOfFile(adapterLog);
     });
 
     suite('Basic', () => {
@@ -159,6 +164,11 @@ suite('Adapter tests', () => {
             await verifyLocation(stoppedEvent.body.threadId, debuggeeSource, bpLine);
             let frameId = await getTopFrameId(stoppedEvent.body.threadId);
             let localsRef = await getFrameLocalsRef(frameId);
+
+            let invalid_utf8 = '"ABC\uFFFD\\x01\uFFFDXYZ';
+            if (/windows/.test(triple) && !useCodeLLDB)
+                invalid_utf8 = '"ABC\uDCFF\\x01\uDCFEXYZ';
+
             await compareVariables(localsRef, {
                 a: 30,
                 b: 40,
@@ -174,7 +184,8 @@ suite('Adapter tests', () => {
                 empty_str: '""',
                 wstr1: 'L"Превед йожэг!"',
                 wstr2: 'L"Ḥ̪͔̦̺E͍̹̯̭͜ C̨͙̹̖̙O̡͍̪͖ͅM̢̗͙̫̬E̜͍̟̟̮S̢̢̪̘̦!"',
-                invalid_utf8: /windows/.test(triple) ? '"ABC\uDCFF\\x01\uDCFEXYZ' : '"ABC\uFFFD\\x01\uFFFDXYZ',
+
+                invalid_utf8: invalid_utf8,
                 anon_union: {
                     '': { x: 4, y: 4 }
                 }
@@ -421,15 +432,6 @@ suite('Adapter tests', () => {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-function getAdapterLogFileName(): string {
-    if (process.env.ADAPTER_LOG)
-        return process.env.ADAPTER_LOG;
-    else if (process.env.USE_CODELLDB)
-        return 'adapter2.test.log';
-    else
-        return 'adapter.test.log';
-}
-
 interface AdapterProcess {
     process: cp.ChildProcess,
     port: number
@@ -437,7 +439,7 @@ interface AdapterProcess {
 
 async function startDebugAdapter(adapterLog: string): Promise<AdapterProcess> {
     let adapter: cp.ChildProcess;
-    if (process.env.USE_CODELLDB) {
+    if (useCodeLLDB) {
         let stderr = await openFileAsync(adapterLog, 'w');
         let codelldb = path.join(sourceDir, 'build/adapter2/codelldb');
         adapter = cp.spawn(codelldb, ['--lldb=build/lldb'], {
@@ -625,12 +627,16 @@ function withTimeout<T>(timeoutMillis: number, promise: Promise<T>): Promise<T> 
     });
 }
 
-async function getRidOfFile(filename: string) {
-    try {
-        await deleteFileAsync(filename);
-    } catch (err) {
-        if (err.code == 'ENOENT') return;
-        console.log('Could not delete %s: %s, renaming...', filename, err);
-        await renameFileAsync(filename, filename + '.DELETED');
+function removeDirSync(dir: string) {
+    if (fs.existsSync(dir)) {
+        let names = fs.readdirSync(dir);
+        for (let name of names) {
+            let filepath = path.join(dir, name);
+            if (fs.lstatSync(filepath).isDirectory())
+                removeDirSync(filepath);
+            else
+                fs.unlinkSync(filepath);
+        }
+        fs.rmdirSync(dir);
     }
 }
