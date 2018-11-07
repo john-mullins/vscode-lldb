@@ -626,7 +626,7 @@ function withTimeout<T>(timeoutMillis: number, promise: Promise<T>): Promise<T> 
 async function deleteFileIfExists(filename: string) {
     for (let i = 0; i < 100; ++i) {
         let err = await new Promise<NodeJS.ErrnoException>(resolve => fs.unlink(filename, err => resolve(err)));
-        if (!err || err.code == 'EEXIST') return;
+        if (!err || err.code == 'ENOENT') return;
         console.log('Could not delete %s: %s', filename, err);
         await sleepAsync(100);
     }
