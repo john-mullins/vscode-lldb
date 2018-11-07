@@ -112,9 +112,10 @@ suite('Adapter tests', () => {
             let waitForExitAsync = dc.waitForEvent('exited');
             let waitForStopAsync = waitForStopEvent();
 
-            let testcase = triple.endsWith('windows-gnu') ?
-                'header_nodylib' : // FIXME: loading dylib triggers a weird access violation on windows-gnu
-                'header';
+            // let testcase = triple.endsWith('windows-gnu') ?
+            //     'header_nodylib' : // FIXME: loading dylib triggers a weird access violation on windows-gnu
+            //     'header';
+            let testcase = 'header_nodylib';
 
             await launch({ name: 'stop on a breakpoint', program: debuggee, args: [testcase], cwd: path.dirname(debuggee) });
             await setBreakpointAsyncSource;
