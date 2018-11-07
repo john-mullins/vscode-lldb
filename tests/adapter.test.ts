@@ -28,6 +28,8 @@ const rusttypes = path.join(targetDir, 'rusttypes');
 const rusttypesSource = path.normalize(path.join(sourceDir, 'debuggee', 'rust', 'types.rs'));
 
 const openFileAsync = promisify(fs.open);
+const deleteFileAsync = promisify(fs.unlink);
+const renameFileAsync = promisify(fs.rename);
 const sleepAsync = promisify(setTimeout);
 
 const adapterLog = 'adapter.log';
@@ -48,7 +50,7 @@ suite('Adapter tests', () => {
         if (process.env.DEBUG_SERVER) {
             port = parseInt(process.env.DEBUG_SERVER)
         } else {
-            await deleteFileIfExists(adapterLog);
+            await getRidOfFile(adapterLog);
             debugAdapter = await startDebugAdapter(adapterLog);
         }
         await dc.start(debugAdapter.port);
@@ -71,7 +73,7 @@ suite('Adapter tests', () => {
             });
             console.error('------------------');
         }
-        await deleteFileIfExists(adapterLog);
+        await getRidOfFile(adapterLog);
     });
 
     suite('Basic', () => {
@@ -623,11 +625,12 @@ function withTimeout<T>(timeoutMillis: number, promise: Promise<T>): Promise<T> 
     });
 }
 
-async function deleteFileIfExists(filename: string) {
-    for (let i = 0; i < 100; ++i) {
-        let err = await new Promise<NodeJS.ErrnoException>(resolve => fs.unlink(filename, err => resolve(err)));
-        if (!err || err.code == 'ENOENT') return;
-        console.log('Could not delete %s: %s', filename, err);
-        await sleepAsync(100);
+async function getRidOfFile(filename: string) {
+    try {
+        await deleteFileAsync(filename);
+    } catch (err) {
+        if (err.code == 'ENOENT') return;
+        console.log('Could not delete %s: %s, renaming...', filename, err);
+        await renameFileAsync(filename, filename + '.DELETED');
     }
 }
