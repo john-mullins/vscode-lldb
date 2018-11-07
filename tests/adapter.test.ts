@@ -28,7 +28,6 @@ const rusttypes = path.join(targetDir, 'rusttypes');
 const rusttypesSource = path.normalize(path.join(sourceDir, 'debuggee', 'rust', 'types.rs'));
 
 const openFileAsync = promisify(fs.open);
-const truncateFileAsync = promisify(fs.truncate);
 
 const adapterLog = 'adapter.log';
 let dc = new DebugClient('', '', 'lldb');
@@ -48,7 +47,7 @@ suite('Adapter tests', () => {
         if (process.env.DEBUG_SERVER) {
             port = parseInt(process.env.DEBUG_SERVER)
         } else {
-            await truncateFileAsync(adapterLog);
+            await deleteFileIfExists(adapterLog);
             debugAdapter = await startDebugAdapter(adapterLog);
         }
         await dc.start(debugAdapter.port);
@@ -619,4 +618,8 @@ function withTimeout<T>(timeoutMillis: number, promise: Promise<T>): Promise<T> 
             resolve(result);
         });
     });
+}
+
+async function deleteFileIfExists(filename: string) {
+    return new Promise(resolve => fs.unlink(filename, err => resolve()));
 }
