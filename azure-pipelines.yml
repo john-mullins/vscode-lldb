@@ -181,8 +181,9 @@ jobs:
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-msvc
       set PATH=%USERPROFILE%\.cargo\bin;%PATH%
       rustup toolchain add nightly-x86_64-pc-windows-gnu
+      curl https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip -o ninja-win.zip
+      unzip ninja-win.zip -d %USERPROFILE%\.cargo\bin
       call npm install
-      choco install ninja
     displayName: 'Install'
 
   - task: BatchScript@1
