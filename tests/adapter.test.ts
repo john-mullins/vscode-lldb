@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as cp from 'child_process';
 import * as fs from 'fs';
+import * as os from 'os';
 import { DebugClient } from 'vscode-debugadapter-testsupport';
 import { DebugProtocol as dp } from 'vscode-debugprotocol';
 import { format, promisify, inspect } from 'util';
@@ -39,7 +40,7 @@ let debugAdapter: AdapterProcess = null;
 suite('Adapter tests', () => {
 
     suiteSetup(function () {
-        logDir = fs.mkdtempSync(path.join(process.env.TMP, 'tests.'));
+        logDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tests.'));
     });
 
     suiteTeardown(function () {
