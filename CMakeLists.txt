@@ -39,7 +39,11 @@ add_copy_files(manifest
     DESTINATION ${ExtensionRoot}
     FILES package.json README.md MANUAL.md CHANGELOG.md
 )
-add_custom_target(vspackage ALL DEPENDS adapter formatters images manifest lldb codelldb)
+add_custom_target(vspackage ALL
+    DEPENDS adapter formatters images manifest lldb codelldb
+    COMMAND vsce package -o ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb.vsix
+    WORKING_DIRECTORY ${ExtensionRoot}
+)
 
 ### Debuggee
 
