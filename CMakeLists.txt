@@ -35,6 +35,10 @@ add_copy_files(images
     DESTINATION ${ExtensionRoot}/images
     GLOB ${CMAKE_SOURCE_DIR}/images/*
 )
+add_copy_files(syntaxes
+    DESTINATION ${ExtensionRoot}/syntaxes
+    GLOB ${CMAKE_SOURCE_DIR}/syntaxes/*
+)
 add_copy_files(manifest
     DESTINATION ${ExtensionRoot}
     FILES package.json README.md MANUAL.md CHANGELOG.md
