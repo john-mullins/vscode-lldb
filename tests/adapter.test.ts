@@ -76,7 +76,9 @@ suite('Adapter tests', () => {
         } catch (e) {
             if (debugAdapter) {
                 console.log('Debug adapter did not stop after shutdown request.')
+                debugAdapter.process.kill();
             }
+            debugAdapter = null;
         }
         if (this.currentTest.state == 'failed') {
             await dumpAdapterLog();
