@@ -40,6 +40,7 @@ jobs:
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-unknown-linux-gnu
       echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
       npm install
+      sudo npm install -g vsce
     displayName: 'Install'
 
   - script: |
@@ -51,8 +52,14 @@ jobs:
 
   - script: |
       $(setenvLinux)
-      cmake --build build
+      cmake --build build --target vspackage
+      cmake -E copy build/vscode-lldb.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-linux.vsix
     displayName: 'Build'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'vscode-lldb'
 
   - script: |
       $(setenvLinux)
@@ -107,6 +114,7 @@ jobs:
       unzip $(System.ArtifactsDirectory)/lldb/lldb-osx.zip -d $(System.ArtifactsDirectory)/lldb-osx
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-apple-darwin
       npm install
+      sudo npm install -g vsce
     displayName: 'Install'
 
   - script: |
@@ -118,8 +126,14 @@ jobs:
 
   - script: |
       $(setenvOSX)
-      cmake --build build
+      cmake --build build --target vspackage
+      cmake -E copy build/vscode-lldb.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-osx.vsix
     displayName: 'Build'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'vscode-lldb'
 
   - script: |
       $(setenvOSX)
@@ -187,6 +201,7 @@ jobs:
       echo ------
       unzip ninja-win.zip -d %USERPROFILE%\.cargo\bin
       call npm install
+      call npm install -g vsce
     displayName: 'Install'
 
   - task: BatchScript@1
@@ -209,8 +224,14 @@ jobs:
 
   - script: |
       $(setenvWindows)
-      cmake --build build
+      cmake --build build --target vspackage
+      cmake -E copy build/vscode-lldb.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-windows.vsix
     displayName: 'Build'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'vscode-lldb'
 
   - script: |
       $(setenvWindows)

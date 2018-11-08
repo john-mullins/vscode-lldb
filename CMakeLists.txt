@@ -39,9 +39,23 @@ add_copy_files(manifest
     DESTINATION ${ExtensionRoot}
     FILES package.json README.md MANUAL.md CHANGELOG.md
 )
+
+if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
+    set(StripFiles strip
+                   ${ExtensionRoot}/adapter2/codelldb
+                   ${ExtensionRoot}/adapter2/libcodelldb.so
+                   ${ExtensionRoot}/lldb/bin/lldb
+                   ${ExtensionRoot}/lldb/bin/lldb-server
+                   ${ExtensionRoot}/lldb/lib/liblldb.so
+                   ${ExtensionRoot}/lldb/lib/liblldb.so.8svn
+                   ${ExtensionRoot}/lldb/lib/python2.7/site-packages/lldb/lldb-argdumper
+                   )
+endif()
+
 add_custom_target(vspackage ALL
     DEPENDS adapter formatters images manifest lldb codelldb
-    COMMAND vsce package -o ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb.vsix
+    COMMAND ${StripFiles}
+    COMMAND vsce package -o ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb-linux.vsix
     WORKING_DIRECTORY ${ExtensionRoot}
 )
 
