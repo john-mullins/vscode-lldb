@@ -123,7 +123,7 @@ jobs:
       $(setenvOSX)
       mkdir build
       cd build
-      cmake -DLLDB_ROOT=$(System.ArtifactsDirectory)/lldb-osx ..
+      cmake -DLLDB_ROOT=$(Agent.WorkFolder)/D/lldb-osx ..
     displayName: 'Configure'
 
   - script: |
@@ -198,11 +198,8 @@ jobs:
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-msvc
       set PATH=%USERPROFILE%\.cargo\bin;%PATH%
       rustup toolchain add nightly-x86_64-pc-windows-gnu
-      curl https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip -o ninja-win.zip
-      echo ------
-      where ninja
-      echo ------
-      unzip ninja-win.zip -d %USERPROFILE%\.cargo\bin
+      curl https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip -o $(Agent.WorkFolder)/D/ninja-win.zip
+      unzip $(Agent.WorkFolder)/D/ninja-win.zip -d %USERPROFILE%\.cargo\bin
       call npm install
       call npm install -g vsce
     displayName: 'Install'
