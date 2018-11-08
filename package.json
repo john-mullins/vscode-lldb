@@ -45,7 +45,7 @@
 	"scripts": {
 		"postinstall": "node ./node_modules/vscode/bin/install"
 	},
-	"main": "./build/extension/extension",
+	"main": "./extension/extension",
 	"activationEvents": [
 		"onDebug",
 		"onCommand:lldb.diagnose",

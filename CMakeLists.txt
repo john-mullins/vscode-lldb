@@ -14,10 +14,32 @@ if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     set(NodeProgExt .cmd)
 endif()
 
+set(ExtensionRoot ${CMAKE_CURRENT_BINARY_DIR}/package)
+
 add_subdirectory(adapter2)
 add_subdirectory(lldb)
 add_subdirectory(extension)
 add_subdirectory(tests)
+
+### Adapter and package
+
+add_copy_files(adapter
+    DESTINATION ${ExtensionRoot}/adapter
+    GLOB ${CMAKE_SOURCE_DIR}/adapter/*.py
+)
+add_copy_files(formatters
+    DESTINATION ${ExtensionRoot}/formatters
+    GLOB ${CMAKE_SOURCE_DIR}/formatters/*.py
+)
+add_copy_files(images
+    DESTINATION ${ExtensionRoot}/images
+    GLOB ${CMAKE_SOURCE_DIR}/images/*
+)
+add_copy_files(manifest
+    DESTINATION ${ExtensionRoot}
+    FILES package.json README.md MANUAL.md CHANGELOG.md
+)
+add_custom_target(package ALL DEPENDS adapter formatters images manifest lldb codelldb)
 
 ### Debuggee
 
@@ -102,13 +124,7 @@ endif()
 ### Install
 
 install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}\")")
-
 install(
-    FILES package.json README.md MANUAL.md CHANGELOG.md
+    DIRECTORY ${ExtensionRoot}
     DESTINATION .
-)
-install(
-    DIRECTORY adapter images syntaxes formatters
-    DESTINATION .
-    PATTERN "*.pyc" EXCLUDE
 )

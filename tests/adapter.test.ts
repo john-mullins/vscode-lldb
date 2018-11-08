@@ -14,19 +14,21 @@ const useCodeLLDB = !!process.env.USE_CODELLDB;
 
 const sourceDir = process.cwd();
 
-var targetDir = path.join(sourceDir, 'build');
+var debuggeeDir = path.join(sourceDir, 'build');
 if (triple.endsWith('pc-windows-gnu'))
-    targetDir = path.join(targetDir, 'debuggee-gnu');
+    debuggeeDir = path.join(debuggeeDir, 'debuggee-gnu');
 else if (triple.endsWith('pc-windows-msvc'))
-    targetDir = path.join(targetDir, 'debuggee-msvc');
+    debuggeeDir = path.join(debuggeeDir, 'debuggee-msvc');
 else
-    targetDir = path.join(targetDir, 'debuggee');
+    debuggeeDir = path.join(debuggeeDir, 'debuggee');
 
-const debuggee = path.join(targetDir, 'debuggee');
+const extensionRoot = path.join(sourceDir, 'build', 'package');
+
+const debuggee = path.join(debuggeeDir, 'debuggee');
 const debuggeeSource = path.normalize(path.join(sourceDir, 'debuggee', 'cpp', 'debuggee.cpp'));
 const debuggeeHeader = path.normalize(path.join(sourceDir, 'debuggee', 'cpp', 'dir1', 'debuggee.h'));
 
-const rusttypes = path.join(targetDir, 'rusttypes');
+const rusttypes = path.join(debuggeeDir, 'rusttypes');
 const rusttypesSource = path.normalize(path.join(sourceDir, 'debuggee', 'rust', 'types.rs'));
 
 const openFileAsync = promisify(fs.open);
@@ -442,14 +444,14 @@ async function startDebugAdapter(adapterLog: string): Promise<AdapterProcess> {
     let adapter: cp.ChildProcess;
     if (useCodeLLDB) {
         let stderr = await openFileAsync(adapterLog, 'w');
-        let codelldb = path.join(sourceDir, 'build/adapter2/codelldb');
-        adapter = cp.spawn(codelldb, ['--lldb=build/lldb'], {
+        let codelldb = path.join(extensionRoot, 'adapter2/codelldb');
+        adapter = cp.spawn(codelldb, ['--lldb=lldb'], {
             stdio: ['ignore', 'pipe', stderr],
-            cwd: sourceDir,
+            cwd: extensionRoot,
             env: Object.assign({ RUST_LOG: 'error,codelldb=debug' }, process.env)
         });
     } else {
-        let lldb = path.join(sourceDir, 'build/lldb/bin/lldb');
+        let lldb = path.join(extensionRoot, 'lldb/bin/lldb');
         if (process.env.LLDB_EXECUTABLE) {
             lldb = process.env.LLDB_EXECUTABLE;
         }
@@ -458,12 +460,12 @@ async function startDebugAdapter(adapterLog: string): Promise<AdapterProcess> {
             logFile: adapterLog
         };
         let args = ['-b', '-Q',
-            '-O', format('command script import \'%s\'', path.join(sourceDir, 'adapter')),
+            '-O', format('command script import \'%s\'', path.join(extensionRoot, 'adapter')),
             '-O', format('script adapter.run_tcp_session(0 ,\'%s\')', new Buffer(JSON.stringify(params)).toString('base64'))
         ]
         adapter = cp.spawn(lldb, args, {
             stdio: ['ignore', 'pipe', 'pipe'],
-            cwd: sourceDir,
+            cwd: extensionRoot,
         });
     }
 

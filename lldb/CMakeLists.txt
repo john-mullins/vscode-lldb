@@ -1,36 +1,35 @@
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
     add_copy_files(lldb_bin
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
+        DESTINATION ${ExtensionRoot}/lldb/bin
         FILES ${LLDB_ROOT}/bin/lldb ${LLDB_ROOT}/bin/lldb-server
     )
     add_copy_files(lldb_lib
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib
+        DESTINATION ${ExtensionRoot}/lldb/lib
         FILES ${LLDB_ROOT}/lib/liblldb.so ${LLDB_ROOT}/lib/liblldb.so.8svn
     )
     add_copy_directory(lldb_python
         ${LLDB_ROOT}/lib/python2.7/site-packages
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+        DESTINATION ${ExtensionRoot}/lldb
         RELATIVE ${LLDB_ROOT}
         EXCLUDE "_lldb.*"
     )
 elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
     add_copy_files(lldb_bin
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
+        DESTINATION ${ExtensionRoot}/lldb/bin
         FILES ${LLDB_ROOT}/bin/lldb ${LLDB_ROOT}/bin/debugserver
     )
     add_copy_files(lldb_lib
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib
+        DESTINATION ${ExtensionRoot}/lldb/lib
         FILES ${LLDB_ROOT}/lib/liblldb.dylib ${LLDB_ROOT}/lib/liblldb.8.0.0.dylib
     )
     add_copy_directory(lldb_python
         ${LLDB_ROOT}/lib/python2.7/site-packages
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+        DESTINATION ${ExtensionRoot}/lldb
         RELATIVE ${LLDB_ROOT}
         EXCLUDE "_lldb.*"
     )
 elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    file(GLOB_RECURSE MSDIA "C:/Program Files (x86)/Microsoft Visual Studio/msdia140.dll")
-    list(FILTER MSDIA INCLUDE REGEX "amd64/msdia140.dll$")
+    find_file(MSDIA msdia140.dll PATHS "$ENV{VSINSTALLDIR}/DIA SDK/bin/amd64")
     if (NOT MSDIA)
         message(WARNING "msdiaXXX.dll not found")
         set(MSDIA)
@@ -39,16 +38,16 @@ elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     endif()
 
     add_copy_files(lldb_bin
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
+        DESTINATION ${ExtensionRoot}/lldb/bin
         FILES ${LLDB_ROOT}/bin/lldb.exe
     )
     add_copy_files(lldb_lib
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
+        DESTINATION ${ExtensionRoot}/lldb/bin
         FILES ${LLDB_ROOT}/bin/liblldb.dll "${MSDIA}"
     )
     add_copy_directory(lldb_python
         ${LLDB_ROOT}/lib/site-packages
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+        DESTINATION ${ExtensionRoot}/lldb
         RELATIVE ${LLDB_ROOT}
         EXCLUDE "_lldb.*"
     )
@@ -58,13 +57,4 @@ endif()
 
 add_custom_target(lldb ALL
     DEPENDS lldb_bin lldb_lib lldb_python
-)
-
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
-    DESTINATION build/lldb
-    USE_SOURCE_PERMISSIONS
-)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
-    DESTINATION build/lldb
-    USE_SOURCE_PERMISSIONS
 )

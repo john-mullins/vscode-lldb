@@ -41,7 +41,7 @@
     {
       "type": "shell",
       "label": "Start extension host",
-      "command": "code --extensionDevelopmentPath=${workspaceRoot} ${workspaceRoot}/debuggee",
+      "command": "code --extensionDevelopmentPath=${workspaceRoot}/build/package ${workspaceRoot}/debuggee",
       "group": "build"
     },
   ]
