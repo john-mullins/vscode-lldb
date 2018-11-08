@@ -14,7 +14,7 @@ if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     set(NodeProgExt .cmd)
 endif()
 
-set(ExtensionRoot ${CMAKE_CURRENT_BINARY_DIR}/package)
+set(ExtensionRoot ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb)
 
 add_subdirectory(adapter2)
 add_subdirectory(lldb)
@@ -39,7 +39,7 @@ add_copy_files(manifest
     DESTINATION ${ExtensionRoot}
     FILES package.json README.md MANUAL.md CHANGELOG.md
 )
-add_custom_target(package ALL DEPENDS adapter formatters images manifest lldb codelldb)
+add_custom_target(vspackage ALL DEPENDS adapter formatters images manifest lldb codelldb)
 
 ### Debuggee
 
@@ -123,7 +123,7 @@ endif()
 
 ### Install
 
-install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}\")")
+install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/vscode-lldb\")")
 install(
     DIRECTORY ${ExtensionRoot}
     DESTINATION .

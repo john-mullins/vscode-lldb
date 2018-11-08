@@ -24,7 +24,7 @@
 			"pythonPath": "${workspaceFolder}/tools/debug_launcher.py",
 			"program": "${workspaceFolder}/tools/debug_stub.py",
 			"env": {
-				"LLDB_EXECUTABLE": "${workspaceFolder}/build/package/lldb/bin/lldb"
+				"LLDB_EXECUTABLE": "${workspaceFolder}/build/vscode-lldb/lldb/bin/lldb"
 			}
 		},
 		{
@@ -32,9 +32,9 @@
 			"preLaunchTask": "codelldb",
 			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceFolder}/build/package/adapter2/codelldb",
+			"program": "${workspaceFolder}/build/vscode-lldb/adapter2/codelldb",
 			"args": [
-				"--lldb=${workspaceFolder}/build/package/lldb",
+				"--lldb=${workspaceFolder}/build/vscode-lldb/lldb",
 				"--multi-session",
 				"--port=4711"
 			],
@@ -67,9 +67,9 @@
 			"type": "cppvsdbg",
 			"request": "launch",
 			"preLaunchTask": "codelldb",
-			"program": "${workspaceFolder}/build/package/adapter2/codelldb.exe",
+			"program": "${workspaceFolder}/build/vscode-lldb/adapter2/codelldb.exe",
 			"args": [
-				"--lldb=${workspaceFolder}/build/package/lldb",
+				"--lldb=${workspaceFolder}/build/vscode-lldb/lldb",
 				"--multi-session",
 				"--port=4711"
 			],
