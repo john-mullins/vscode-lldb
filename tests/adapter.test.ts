@@ -72,7 +72,7 @@ suite('Adapter tests', () => {
 
     teardown(async function () {
         try {
-            await withTimeout(3000, dc.stop());
+            await withTimeout(3000, dc.stop().catch());
         } catch (e) {
             if (debugAdapter) {
                 console.log('Debug adapter did not stop after shutdown request.')
