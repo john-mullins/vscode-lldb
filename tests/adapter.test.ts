@@ -55,14 +55,19 @@ suite('Adapter tests', () => {
     });
 
     setup(async function () {
-        let port = null;
-        if (process.env.DEBUG_SERVER) {
-            port = parseInt(process.env.DEBUG_SERVER)
-        } else {
-            adapterLog = path.join(logDir, format('adapter%d.log', ++testId));
-            debugAdapter = await startDebugAdapter(adapterLog);
+        try {
+            let port = null;
+            if (process.env.DEBUG_SERVER) {
+                port = parseInt(process.env.DEBUG_SERVER)
+            } else {
+                adapterLog = path.join(logDir, format('adapter%d.log', ++testId));
+                debugAdapter = await startDebugAdapter(adapterLog);
+            }
+            await dc.start(debugAdapter.port);
+        } catch (err) {
+            console.log('Exception is test setup: %s', err);
+            await dumpAdapterLog();
         }
-        await dc.start(debugAdapter.port);
     });
 
     teardown(async function () {
@@ -74,13 +79,7 @@ suite('Adapter tests', () => {
             }
         }
         if (this.currentTest.state == 'failed') {
-            console.error('--- Adapter log ---');
-            let log = fs.createReadStream(adapterLog);
-            await new Promise(resolve => {
-                log.pipe(process.stderr);
-                log.on('end', resolve);
-            });
-            console.error('------------------');
+            await dumpAdapterLog();
         }
     });
 
@@ -642,4 +641,14 @@ function removeDirSync(dir: string) {
         }
         fs.rmdirSync(dir);
     }
+}
+
+async function dumpAdapterLog() {
+    console.error('--- Adapter log ---');
+    let log = fs.createReadStream(adapterLog);
+    await new Promise(resolve => {
+        log.pipe(process.stderr);
+        log.on('end', resolve);
+    });
+    console.error('------------------');
 }
