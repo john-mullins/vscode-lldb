@@ -55,7 +55,7 @@ endif()
 add_custom_target(vspackage ALL
     DEPENDS adapter formatters images manifest lldb codelldb
     COMMAND ${StripFiles}
-    COMMAND vsce package -o ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb-linux.vsix
+    COMMAND vsce package -o ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb.vsix
     WORKING_DIRECTORY ${ExtensionRoot}
 )
 
