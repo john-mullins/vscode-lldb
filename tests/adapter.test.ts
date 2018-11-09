@@ -136,16 +136,16 @@ suite('Adapter tests', () => {
             await setBreakpointAsyncSource;
             await setBreakpointAsyncHeader;
 
-            let stopEvent = await withTimeout(1000, waitForStopAsync);
+            let stopEvent = await withTimeout(3000, waitForStopAsync);
             await verifyLocation(stopEvent.body.threadId, debuggeeSource, bpLineSource);
 
             let waitForStopAsync2 = waitForStopEvent();
             await dc.continueRequest({ threadId: 0 });
-            let stopEvent2 = await withTimeout(1000, waitForStopAsync2);
+            let stopEvent2 = await withTimeout(3000, waitForStopAsync2);
             await verifyLocation(stopEvent.body.threadId, debuggeeHeader, bpLineHeader);
 
             await dc.continueRequest({ threadId: 0 });
-            await withTimeout(1000, waitForExitAsync);
+            await withTimeout(3000, waitForExitAsync);
         });
 
         test('page stack', async function () {
@@ -154,7 +154,7 @@ suite('Adapter tests', () => {
             let waitForStopAsync = waitForStopEvent();
             await launch({ name: 'page stack', program: debuggee, args: ['deepstack'] });
             await setBreakpointAsync;
-            let stoppedEvent = await withTimeout(1000, waitForStopAsync);
+            let stoppedEvent = await withTimeout(3000, waitForStopAsync);
             let response2 = await dc.stackTraceRequest({ threadId: stoppedEvent.body.threadId, startFrame: 20, levels: 10 });
             assert.equal(response2.body.stackFrames.length, 10)
             let response3 = await dc.scopesRequest({ frameId: response2.body.stackFrames[0].id });
@@ -237,7 +237,7 @@ suite('Adapter tests', () => {
             for (let i = 1; i < 10; ++i) {
                 let waitForStopAsync = waitForStopEvent();
                 await dc.continueRequest({ threadId: 0 });
-                let stoppedEvent = await withTimeout(1000, waitForStopAsync);
+                let stoppedEvent = await withTimeout(3000, waitForStopAsync);
                 let frameId = await getTopFrameId(stoppedEvent.body.threadId);
 
                 let response1 = await dc.evaluateRequest({ expression: "s1.d", frameId: frameId, context: "watch" });
@@ -286,7 +286,7 @@ suite('Adapter tests', () => {
             });
             let waitStoppedEvent2 = waitForStopEvent();
             await dc.continueRequest({ threadId: stoppedEvent.body.threadId });
-            let stoppedEvent2 = await withTimeout(1000, waitStoppedEvent2);
+            let stoppedEvent2 = await withTimeout(3000, waitStoppedEvent2);
             let stackTrace2 = await dc.stackTraceRequest({
                 threadId: stoppedEvent2.body.threadId,
                 startFrame: 0, levels: 5
