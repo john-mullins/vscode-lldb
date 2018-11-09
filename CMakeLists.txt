@@ -31,6 +31,7 @@ add_copy_files(formatters
     DESTINATION ${ExtensionRoot}/formatters
     GLOB ${CMAKE_SOURCE_DIR}/formatters/*.py
 )
+add_dependencies(adapter formatters)
 add_copy_files(images
     DESTINATION ${ExtensionRoot}/images
     GLOB ${CMAKE_SOURCE_DIR}/images/*
@@ -96,7 +97,7 @@ endif()
 
 set(MochaCommand "${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha${NodeProgExt}"
     -u tdd
-    --timeout 30000
+    --timeout 15000
     --exit
     --require source-map-support/register
     \${MOCHA_ARGS}
@@ -105,7 +106,7 @@ set(MochaCommand "${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha${NodeProgExt}"
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     add_custom_target(test_adapter_gnu
-        DEPENDS debuggee lldb tests
+        DEPENDS debuggee adapter lldb tests
         COMMAND ${CMAKE_COMMAND} -E env TARGET_TRIPLE=x86_64-pc-windows-gnu ${MochaCommand}
         USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
@@ -115,7 +116,7 @@ if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
         USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
     add_custom_target(test_adapter_msvc
-        DEPENDS debuggee lldb tests
+        DEPENDS debuggee adapter lldb tests
         COMMAND ${CMAKE_COMMAND} -E env TARGET_TRIPLE=x86_64-pc-windows-msvc ${MochaCommand}
         USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
@@ -130,7 +131,7 @@ if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
         DEPENDS test_adapter2_gnu test_adapter2_msvc)
 else()
     add_custom_target(test_adapter
-        DEPENDS debuggee lldb tests
+        DEPENDS debuggee adapter lldb tests
         COMMAND ${CMAKE_COMMAND} -E env TARGET_TRIPLE=x86_64-unknown-linux-gnu ${MochaCommand}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         USES_TERMINAL WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
