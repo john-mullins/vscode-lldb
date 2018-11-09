@@ -60,6 +60,8 @@ suite('Adapter tests', () => {
             if (process.env.DEBUG_SERVER) {
                 port = parseInt(process.env.DEBUG_SERVER)
             } else {
+                if (!fs.existsSync(logDir))
+                    console.log('%s does not exist, WTF?', logDir);
                 adapterLog = path.join(logDir, format('adapter%d.log', ++testId));
                 debugAdapter = await startDebugAdapter(adapterLog);
             }
