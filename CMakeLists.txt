@@ -96,7 +96,7 @@ endif()
 
 set(MochaCommand "${CMAKE_SOURCE_DIR}/node_modules/.bin/mocha${NodeProgExt}"
     -u tdd
-    --timeout 10000
+    --timeout 30000
     --exit
     --require source-map-support/register
     \${MOCHA_ARGS}
