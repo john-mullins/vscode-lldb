@@ -4,9 +4,10 @@ import * as cp from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as stream from 'stream';
+import { format, promisify, inspect } from 'util';
 import { DebugClient } from 'vscode-debugadapter-testsupport';
 import { DebugProtocol as dp } from 'vscode-debugprotocol';
-import { format, promisify, inspect } from 'util';
+import { WritableStream } from 'memory-streams';
 
 import * as util from '../extension/util';
 
@@ -32,25 +33,17 @@ const debuggeeHeader = path.normalize(path.join(sourceDir, 'debuggee', 'cpp', 'd
 const rusttypes = path.join(debuggeeDir, 'rusttypes');
 const rusttypesSource = path.normalize(path.join(sourceDir, 'debuggee', 'rust', 'types.rs'));
 
-const openFileAsync = promisify(fs.open);
-
-var adapterLog: stream.Writable;
-var dc = new DebugClient('', '', 'lldb');
+var adapterLog: WritableStream;
 var debugAdapter: AdapterProcess = null;
+var dc = new DebugClient('', '', 'lldb');
 
 suite('Adapter tests', () => {
 
     suiteSetup(function () {
-        //logDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tests.'));
     });
 
     suiteTeardown(function () {
         dc.stop();
-        // try {
-        //     removeDirSync(logDir);
-        // } catch (err) {
-        //     console.log('Could not remove %s : %s', logDir, err)
-        // }
     });
 
     setup(async function () {
@@ -59,12 +52,13 @@ suite('Adapter tests', () => {
             if (process.env.DEBUG_SERVER) {
                 port = parseInt(process.env.DEBUG_SERVER)
             } else {
-                //adapterLog = new stream.Writable();
-                debugAdapter = await startDebugAdapter(process.stderr);
+                adapterLog = new WritableStream();
+                debugAdapter = await startDebugAdapter(adapterLog);
             }
             await dc.start(debugAdapter.port);
         } catch (err) {
             console.log('Exception is test setup: %s', err);
+            dumpAdapterLog();
         }
     });
 
@@ -79,7 +73,7 @@ suite('Adapter tests', () => {
             debugAdapter = null;
         }
         if (this.currentTest.state == 'failed') {
-
+            dumpAdapterLog();
         }
     });
 
@@ -627,30 +621,9 @@ function withTimeout<T>(timeoutMillis: number, promise: Promise<T>): Promise<T> 
     });
 }
 
-// function removeDirSync(dir: string) {
-//     if (fs.existsSync(dir)) {
-//         let names = fs.readdirSync(dir);
-//         for (let name of names) {
-//             let filepath = path.join(dir, name);
-//             if (fs.lstatSync(filepath).isDirectory())
-//                 removeDirSync(filepath);
-//             else
-//                 fs.unlinkSync(filepath);
-//         }
-//         fs.rmdirSync(dir);
-//     }
-// }
+function dumpAdapterLog() {
+    console.error('---Adapter log ---');
+    console.error(adapterLog.toString());
+    console.error('------------------')
 
-// async function dumpAdapterLog() {
-//     console.error('--- Adapter log ---');
-//     if (fs.existsSync(adapterLog)) {
-//         let log = fs.createReadStream(adapterLog);
-//         await new Promise(resolve => {
-//             log.pipe(process.stderr);
-//             log.on('end', resolve);
-//         });
-//     } else {
-//         console.log('| no log found');
-//     }
-//     console.error('-------------------');
-// }
+}
