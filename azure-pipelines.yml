@@ -198,6 +198,7 @@ jobs:
     displayName: 'Download LLDB'
 
   - script: |
+      choco install zip
       unzip $(Agent.WorkFolder)/D/lldb/lldb-windows.zip -d $(Agent.WorkFolder)/D/lldb-windows
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-x86_64-pc-windows-msvc
       set PATH=%USERPROFILE%\.cargo\bin;%PATH%
