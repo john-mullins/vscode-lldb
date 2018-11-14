@@ -625,5 +625,4 @@ function dumpAdapterLog() {
     console.error('---Adapter log ---');
     console.error(adapterLog.toString());
     console.error('------------------')
-
 }

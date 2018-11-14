@@ -12,6 +12,8 @@ set(CMAKE_INSTALL_PREFIX $ENV{HOME}/.vscode/extensions/vscode-lldb CACHE PATH "I
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     set(NodeProgExt .cmd)
+else()
+    set(ZipSymlinks -y)
 endif()
 
 set(ExtensionRoot ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb)
@@ -56,6 +58,13 @@ if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
                    ${ExtensionRoot}/lldb/lib/python2.7/site-packages/lldb/lldb-argdumper
                    )
 endif()
+
+add_custom_target(zipnative
+    DEPENDS lldb codelldb
+    COMMAND ${StripFiles}
+    COMMAND zip -r -9 ${ZipSymlinks} ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb-native.zip lldb adapter2
+    WORKING_DIRECTORY ${ExtensionRoot}
+)
 
 add_custom_target(vspackage ALL
     DEPENDS adapter formatters images manifest lldb codelldb
