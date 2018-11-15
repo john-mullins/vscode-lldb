@@ -68,14 +68,14 @@ jobs:
       export ADAPTER_LOG=/tmp/adapter.test.log
       cmake --build build --target test_adapter
     displayName: 'Test1'
-    condition: ${runTests}
+    condition: $(runTests)
 
   - script: |
       $(setenvLinux)
       export ADAPTER_LOG=/tmp/adapter2.test.log
       cmake --build build --target test_adapter
     displayName: 'Test2'
-    condition: ${runTests}
+    condition: $(runTests)
 
   - script: |
       cat /tmp/adapter.test.log
@@ -143,14 +143,14 @@ jobs:
       export ADAPTER_LOG=/tmp/adapter.test.log
       cmake --build build --target test_adapter
     displayName: 'Test1'
-    condition: ${runTests}
+    condition: $(runTests)
 
   - script: |
       $(setenvOSX)
       export ADAPTER_LOG=/tmp/adapter2.test.log
       cmake --build build --target test_adapter2
     displayName: 'Test2'
-    condition: ${runTests}
+    condition: $(runTests)
 
   - script: |
       cat /tmp/adapter.test.log
@@ -240,28 +240,28 @@ jobs:
       set ADAPTER_LOG=%TEMP%\adapter.test.log
       cmake --build build --target test_adapter_gnu
     displayName: 'Test1 GNU'
-    condition: ${runTests}
+    condition: $(runTests)
 
   - script: |
       $(setenvWindows)
       set ADAPTER_LOG=%TEMP%\adapter2.test.log
       cmake --build build --target test_adapter2_gnu
     displayName: 'Test2 GNU'
-    condition: ${runTests}
+    condition: $(runTests)
 
   - script: |
       $(setenvWindows)
       set ADAPTER_LOG=%TEMP%\adapter.test.log
       cmake --build build --target test_adapter_msvc
     displayName: 'Test1 MSVC'
-    condition: ${runTests}
+    condition: $(runTests)
 
   - script: |
       $(setenvWindows)
       set ADAPTER_LOG=%TEMP%\adapter2.test.log
       cmake --build build --target test_adapter2_msvc
     displayName: 'Test2 MSVC'
-    condition: ${runTests}
+    condition: $(runTests)
 
   - script: |
       type %TEMP%\adapter.test.log
