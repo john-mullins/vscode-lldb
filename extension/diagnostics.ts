@@ -1,88 +1,7 @@
-import {
-    workspace, languages, window, commands,
-    ExtensionContext, Disposable, QuickPickItem, Uri, Event, EventEmitter, OutputChannel, ConfigurationTarget,
-    WorkspaceFolder, WorkspaceConfiguration
-} from 'vscode';
-import { format, inspect } from 'util';
-import * as cp from 'child_process';
-import * as path from 'path';
-import * as fs from 'fs';
+import { workspace, window, commands, OutputChannel, ConfigurationTarget, Uri } from "vscode";
+import { inspect, format } from "util";
 import * as ver from './ver';
-import * as util from './util';
-import { output, Dict } from './extension';
-
-export class AdapterProcess {
-    public isAlive: boolean;
-    public port: number;
-
-    constructor(process: cp.ChildProcess) {
-        this.process = process;
-        this.isAlive = true;
-        process.on('exit', (code, signal) => {
-            this.isAlive = false;
-            if (signal) {
-                output.appendLine(format('Adapter terminated by %s signal.', signal));
-            }
-            if (code) {
-                output.appendLine(format('Adapter exit code: %d.', code));
-            }
-        });
-    }
-    public terminate() {
-        if (this.isAlive) {
-            this.process.kill();
-        }
-    }
-    process: cp.ChildProcess;
-}
-
-// Start debug adapter in TCP session mode and return the port number it is listening on.
-export async function startDebugAdapter(
-    context: ExtensionContext,
-    folder: WorkspaceFolder | undefined,
-    params: Dict<any>
-): Promise<AdapterProcess> {
-    let config = workspace.getConfiguration('lldb', folder ? folder.uri : undefined);
-    let adapterArgs: string[];
-    let adapterExe: string;
-    let adapterEnv = config.get('executable_env', {});
-    if (!config.get('useCodeLLDB', false)) {
-        let paramsBase64 = getAdapterParameters(config, params);
-        adapterArgs = ['-b',
-            '-O', format('command script import \'%s\'', path.join(context.extensionPath, 'adapter')),
-            '-O', format('script adapter.run_tcp_session(0, \'%s\')', paramsBase64)
-        ];
-        adapterExe = util.getConfigNoDefault(config, 'executable') ||
-            path.join(context.extensionPath, 'lldb/bin/lldb');
-    } else {
-        adapterArgs = ["--lldb=" + path.join(context.extensionPath, 'lldb')];
-        adapterExe = path.join(context.extensionPath, 'adapter2/codelldb');
-    }
-    let adapter = spawnDebugger(adapterArgs, adapterExe, adapterEnv);
-    let regex = new RegExp('^Listening on port (\\d+)\\s', 'm');
-    let match = await waitPattern(adapter, regex);
-
-    let adapterProc = new AdapterProcess(adapter);
-    adapterProc.port = parseInt(match[1]);
-    return adapterProc;
-}
-
-function setIfDefined(target: Dict<any>, config: WorkspaceConfiguration, key: string) {
-    let value = util.getConfigNoDefault(config, key);
-    if (value !== undefined)
-        target[key] = value;
-}
-
-function getAdapterParameters(config: WorkspaceConfiguration, params: Dict<any>): string {
-    setIfDefined(params, config, 'logLevel');
-    setIfDefined(params, config, 'loggers');
-    setIfDefined(params, config, 'logFile');
-    setIfDefined(params, config, 'reverseDebugging');
-    setIfDefined(params, config, 'suppressMissingSourceFiles');
-    setIfDefined(params, config, 'evaluationTimeout');
-    setIfDefined(params, config, 'ptvsd');
-    return new Buffer(JSON.stringify(params)).toString('base64');
-}
+import * as adapter from './adapter';
 
 enum DiagnosticsStatus {
     Succeeded = 0,
@@ -91,7 +10,7 @@ enum DiagnosticsStatus {
     NotFound = 3
 }
 
-export async function diagnose(): Promise<boolean> {
+export async function diagnose(output: OutputChannel): Promise<boolean> {
     output.clear();
     let status = DiagnosticsStatus.Succeeded;
     try {
@@ -126,8 +45,8 @@ export async function diagnose(): Promise<boolean> {
         }
         for (let name of lldbNames) {
             try {
-                let lldb = spawnDebugger(['-v'], name, adapterEnv);
-                version = (await waitPattern(lldb, pattern))[1];
+                let lldb = adapter.spawnDebugger(['-v'], name, adapterEnv);
+                version = (await adapter.waitPattern(lldb, pattern))[1];
                 adapterPath = name;
                 break;
             } catch (err) {
@@ -148,13 +67,13 @@ export async function diagnose(): Promise<boolean> {
 
             // Check if Python scripting is usable.
             output.appendLine('--- Checking Python ---');
-            let lldb2 = spawnDebugger(['-b',
+            let lldb2 = adapter.spawnDebugger(['-b',
                 '-O', 'script import sys, io, lldb',
                 '-O', 'script print(lldb.SBDebugger.Create().IsValid())',
                 '-O', 'script print("OK")'
             ], adapterPath, adapterEnv);
             // [^] = match any char, including newline
-            let match2 = await waitPattern(lldb2, new RegExp('^True$[^]*^OK$', 'm'));
+            let match2 = await adapter.waitPattern(lldb2, new RegExp('^True$[^]*^OK$', 'm'));
         }
         output.appendLine('--- Done ---');
         output.show(true);
@@ -200,42 +119,7 @@ export async function diagnose(): Promise<boolean> {
     return status < DiagnosticsStatus.Failed;
 }
 
-// Spawn LLDB with the specified arguments, wait for it to output something matching
-// regex pattern, or until the timeout expires.
-function spawnDebugger(args: string[], adapterPath: string, adapterEnv: Dict<string>): cp.ChildProcess {
-    let env = Object.assign({}, process.env);
-    for (let key in adapterEnv) {
-        env[key] = util.expandVariables(adapterEnv[key], (type, key) => {
-            if (type == 'env') return process.env[key];
-            throw new Error('Unknown variable type ' + type);
-        });
-    }
-
-    let options: cp.SpawnOptions = {
-        stdio: ['ignore', 'pipe', 'pipe'],
-        env: env,
-        cwd: workspace.rootPath
-    };
-    if (process.platform.includes('darwin')) {
-        // Make sure LLDB finds system Python before Brew Python
-        // https://github.com/Homebrew/legacy-homebrew/issues/47201
-        options.env['PATH'] = '/usr/bin:' + process.env['PATH'];
-    }
-    return cp.spawn(adapterPath, args, options);
-}
-
-async function waitPattern(lldb: cp.ChildProcess, pattern: RegExp, timeout_millis = 5000) {
-    lldb.stdout.on('data', (chunk) => {
-        output.append(chunk.toString()); // Send to "LLDB" output pane.
-    });
-    // Send sdterr to the output pane as well.
-    lldb.stderr.on('data', (chunk) => {
-        output.append(chunk.toString());
-    });
-    return util.waitForPattern(lldb, lldb.stdout, pattern, timeout_millis);
-}
-
-export async function analyzeStartupError(err: Error) {
+export async function analyzeStartupError(err: Error, output: OutputChannel) {
     output.appendLine(err.toString());
     output.show(true)
     let e = <any>err;
@@ -252,6 +136,6 @@ export async function analyzeStartupError(err: Error) {
     }
 
     if ((await actionAsync) == diagnostics) {
-        await diagnose();
+        await diagnose(output);
     }
 }

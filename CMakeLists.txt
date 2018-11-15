@@ -26,47 +26,50 @@ add_subdirectory(tests)
 ### Adapter and package
 
 add_copy_files(adapter
-    DESTINATION ${ExtensionRoot}/adapter
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/adapter
     GLOB ${CMAKE_SOURCE_DIR}/adapter/*.py
 )
 add_copy_files(formatters
-    DESTINATION ${ExtensionRoot}/formatters
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/formatters
     GLOB ${CMAKE_SOURCE_DIR}/formatters/*.py
 )
 add_dependencies(adapter formatters)
 add_copy_files(images
-    DESTINATION ${ExtensionRoot}/images
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/images
     GLOB ${CMAKE_SOURCE_DIR}/images/*
 )
 add_copy_files(syntaxes
-    DESTINATION ${ExtensionRoot}/syntaxes
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/syntaxes
     GLOB ${CMAKE_SOURCE_DIR}/syntaxes/*
 )
 add_copy_files(manifest
-    DESTINATION ${ExtensionRoot}
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
     FILES package.json README.md MANUAL.md CHANGELOG.md
+)
+add_custom_target(extension ALL
+    DEPENDS adapter formatters images extension_js manifest lldb codelldb
 )
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
     set(StripFiles strip
-                   ${ExtensionRoot}/adapter2/codelldb
-                   ${ExtensionRoot}/adapter2/libcodelldb.so
-                   ${ExtensionRoot}/lldb/bin/lldb
-                   ${ExtensionRoot}/lldb/bin/lldb-server
-                   ${ExtensionRoot}/lldb/lib/liblldb.so
-                   ${ExtensionRoot}/lldb/lib/liblldb.so.8svn
-                   ${ExtensionRoot}/lldb/lib/python2.7/site-packages/lldb/lldb-argdumper
+                   ${CMAKE_CURRENT_BINARY_DIR}/adapter2/codelldb
+                   ${CMAKE_CURRENT_BINARY_DIR}/adapter2/libcodelldb.so
+                   ${CMAKE_CURRENT_BINARY_DIR}/lldb/bin/lldb
+                   ${CMAKE_CURRENT_BINARY_DIR}/lldb/bin/lldb-server
+                   ${CMAKE_CURRENT_BINARY_DIR}/lldb/lib/liblldb.so
+                   ${CMAKE_CURRENT_BINARY_DIR}/lldb/lib/liblldb.so.8svn
+                   ${CMAKE_CURRENT_BINARY_DIR}/lldb/lib/python2.7/site-packages/lldb/lldb-argdumper
                    )
 endif()
 
-add_custom_target(zipnative
+add_custom_target(zip_native
     DEPENDS lldb codelldb
     COMMAND ${StripFiles}
     COMMAND zip -r -9 ${ZipSymlinks} ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb-native.zip lldb adapter2
     WORKING_DIRECTORY ${ExtensionRoot}
 )
 
-add_custom_target(vspackage ALL
+add_custom_target(vsix_package
     DEPENDS adapter formatters images manifest lldb codelldb
     COMMAND ${StripFiles}
     COMMAND vsce package -o ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb.vsix

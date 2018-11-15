@@ -1,30 +1,30 @@
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
     add_copy_files(lldb_bin
-        DESTINATION ${ExtensionRoot}/lldb/bin
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
         FILES ${LLDB_ROOT}/bin/lldb ${LLDB_ROOT}/bin/lldb-server
     )
     add_copy_files(lldb_lib
-        DESTINATION ${ExtensionRoot}/lldb/lib
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib
         FILES ${LLDB_ROOT}/lib/liblldb.so ${LLDB_ROOT}/lib/liblldb.so.8svn
     )
     add_copy_directory(lldb_python
         ${LLDB_ROOT}/lib/python2.7/site-packages
-        DESTINATION ${ExtensionRoot}/lldb
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
         RELATIVE ${LLDB_ROOT}
         EXCLUDE "_lldb.*"
     )
 elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
     add_copy_files(lldb_bin
-        DESTINATION ${ExtensionRoot}/lldb/bin
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
         FILES ${LLDB_ROOT}/bin/lldb ${LLDB_ROOT}/bin/debugserver
     )
     add_copy_files(lldb_lib
-        DESTINATION ${ExtensionRoot}/lldb/lib
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib
         FILES ${LLDB_ROOT}/lib/liblldb.dylib ${LLDB_ROOT}/lib/liblldb.8.0.0.dylib
     )
     add_copy_directory(lldb_python
         ${LLDB_ROOT}/lib/python2.7/site-packages
-        DESTINATION ${ExtensionRoot}/lldb
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
         RELATIVE ${LLDB_ROOT}
         EXCLUDE "_lldb.*"
     )
@@ -38,16 +38,16 @@ elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     endif()
 
     add_copy_files(lldb_bin
-        DESTINATION ${ExtensionRoot}/lldb/bin
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
         FILES ${LLDB_ROOT}/bin/lldb.exe
     )
     add_copy_files(lldb_lib
-        DESTINATION ${ExtensionRoot}/lldb/bin
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
         FILES ${LLDB_ROOT}/bin/liblldb.dll "${MSDIA}"
     )
     add_copy_directory(lldb_python
         ${LLDB_ROOT}/lib/site-packages
-        DESTINATION ${ExtensionRoot}/lldb
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
         RELATIVE ${LLDB_ROOT}
         EXCLUDE "_lldb.*"
     )

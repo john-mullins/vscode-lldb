@@ -8,7 +8,7 @@ foreach(File ${Sources})
     list(APPEND Outputs ${CMAKE_CURRENT_BINARY_DIR}/${FileName})
 endforeach()
 
-add_custom_target(extension_build
+add_custom_target(extension_js
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tsconfig.json ${Outputs}
 )
 
@@ -18,9 +18,3 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E env "${CMAKE_SOURCE_DIR}/node_modules/.bin/tsc${NodeProgExt}" --project ${CMAKE_CURRENT_SOURCE_DIR} --outDir ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Building extension"
 )
-
-add_copy_files(extension
-    DESTINATION ${ExtensionRoot}/extension
-    FILES ${Outputs}
-)
-add_dependencies(extension extension_build)

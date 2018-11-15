@@ -4,7 +4,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { inspect } from 'util';
 import * as util from './util';
-import { output, Dict } from './extension';
+import { Dict } from './util';
+import { output } from './main';
 
 export interface CargoConfig {
     args: string[];

@@ -2,8 +2,11 @@ import { DebugConfiguration } from 'vscode';
 import * as cp from 'child_process';
 import { format } from 'util';
 import { QuickPickItem, WorkspaceConfiguration } from 'vscode';
-import { Dict } from './extension';
 import * as stream from 'stream';
+
+export interface Dict<T> {
+    [key: string]: T;
+}
 
 let expandVarRegex = /\$\{(?:([^:}]+):)?([^}]+)\}/g;
 
