@@ -4,13 +4,16 @@ import {
     TextDocumentContentProvider, WorkspaceConfiguration, WorkspaceFolder, CancellationToken,
     DebugConfigurationProvider, DebugConfiguration, DebugSession, DebugSessionCustomEvent,
 } from 'vscode';
-import * as diagnostics from './diagnostics';
+import * as os from 'os';
+import * as path from 'path';
 import { format, inspect } from 'util';
+import * as diagnostics from './diagnostics';
 import * as startup from './adapter';
 import * as htmlView from './htmlView';
 import * as cargo from './cargo';
 import * as util from './util';
 import { Dict } from './util';
+import * as bootstrap from './bootstrap';
 
 export let output = window.createOutputChannel('LLDB');
 
@@ -50,6 +53,8 @@ class Extension implements DebugConfigurationProvider {
         this.registerDisplaySettingCommand('lldb.toggleContainerSummary', async (settings) => {
             settings.containerSummary = !settings.containerSummary;
         });
+
+        subscriptions.push(commands.registerCommand('lldb.test', () => this.test()));
     }
 
     registerDisplaySettingCommand(command: string, updater: (settings: DisplaySettings) => Promise<void>) {
@@ -205,6 +210,12 @@ class Extension implements DebugConfigurationProvider {
         } else {
             throw Error('Cancelled');
         }
+    }
+
+    async test() {
+        let url = "https://dev.azure.com/vadimcn/_apis/resources/Containers/860516?itemPath=vscode-lldb%2Fvscode-lldb-linux.vsix";
+        let file = path.join(os.tmpdir(), 'vscode-lldb.vsix');
+        await bootstrap.download(url, file);
     }
 };
 

@@ -16,14 +16,12 @@ else()
     set(ZipSymlinks -y)
 endif()
 
-set(ExtensionRoot ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb)
-
 add_subdirectory(adapter2)
 add_subdirectory(lldb)
 add_subdirectory(extension)
 add_subdirectory(tests)
 
-### Adapter and package
+### Extension layout
 
 add_copy_files(adapter
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/adapter
@@ -47,7 +45,7 @@ add_copy_files(manifest
     FILES package.json README.md MANUAL.md CHANGELOG.md
 )
 add_custom_target(extension ALL
-    DEPENDS adapter formatters images extension_js manifest lldb codelldb
+    DEPENDS adapter formatters images syntaxes extension_js manifest lldb codelldb
 )
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
@@ -66,14 +64,38 @@ add_custom_target(zip_native
     DEPENDS lldb codelldb
     COMMAND ${StripFiles}
     COMMAND zip -r -9 ${ZipSymlinks} ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb-native.zip lldb adapter2
-    WORKING_DIRECTORY ${ExtensionRoot}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-add_custom_target(vsix_package
-    DEPENDS adapter formatters images manifest lldb codelldb
+# VSIX package
+
+set(PackagedFiles
+    README.md
+    CHANGELOG.md
+    MANUAL.md
+    formatters/*
+    images/*
+    syntaxes/*
+    extension/*.js
+    adapter/**/*.py
+    adapter2/*.py
+    adapter2/codelldb
+    adapter2/codelldb.*
+    lldb/bin/**/*
+    lldb/lib/**/*
+)
+
+set(Content **)
+foreach(Line ${PackagedFiles})
+    set(Content ${Content}\n!${Line})
+endforeach()
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/.vscodeignore ${Content})
+
+add_custom_target(vsix
+    DEPENDS adapter formatters images manifest extension lldb codelldb
     COMMAND ${StripFiles}
     COMMAND vsce package -o ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb.vsix
-    WORKING_DIRECTORY ${ExtensionRoot}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 ### Debuggee

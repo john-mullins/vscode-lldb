@@ -52,9 +52,70 @@
 	"activationEvents": [
 		"onDebug",
 		"onCommand:lldb.diagnose",
-		"onCommand:lldb.getCargoLaunchConfigs"
+		"onCommand:lldb.getCargoLaunchConfigs",
+		"onCommand:lldb.test"
 	],
 	"contributes": {
+		"commands": [
+			{
+				"category": "LLDB",
+				"title": "Show Disassembly ...",
+				"command": "lldb.showDisassembly"
+			},
+			{
+				"category": "LLDB",
+				"title": "Toggle Disassembly",
+				"command": "lldb.toggleDisassembly"
+			},
+			{
+				"category": "LLDB",
+				"title": "Display Format ...",
+				"command": "lldb.displayFormat"
+			},
+			{
+				"category": "LLDB",
+				"title": "Toggle Numeric Pointer Values",
+				"command": "lldb.toggleDerefPointers"
+			},
+			{
+				"category": "LLDB",
+				"title": "Toggle Container Summaries",
+				"command": "lldb.toggleContainerSummary"
+			},
+			{
+				"category": "LLDB",
+				"title": "Run Diagnostics",
+				"command": "lldb.diagnose"
+			},
+			{
+				"category": "LLDB",
+				"title": "Generate launch configurations from Cargo.toml",
+				"command": "lldb.getCargoLaunchConfigs"
+			},
+			{
+				"category": "LLDB",
+				"title": "Test",
+				"command": "lldb.test"
+			}
+		],
+		"languages": [
+			{
+				"id": "lldb.disassembly",
+				"aliases": [
+					"Disassembly"
+				],
+				"extensions": [
+					".disasm"
+				]
+			}
+		],
+		"grammars": [
+			{
+				"language": "lldb.disassembly",
+				"scopeName": "source.disassembly",
+				"path": "./syntaxes/disassembly.json"
+			}
+		],
 		"configuration": {
 			"type": "object",
 			"title": "LLDB",
@@ -235,61 +296,6 @@
 				}
 			}
 		},
-		"commands": [
-			{
-				"category": "LLDB",
-				"title": "Show Disassembly ...",
-				"command": "lldb.showDisassembly"
-			},
-			{
-				"category": "LLDB",
-				"title": "Toggle Disassembly",
-				"command": "lldb.toggleDisassembly"
-			},
-			{
-				"category": "LLDB",
-				"title": "Display Format ...",
-				"command": "lldb.displayFormat"
-			},
-			{
-				"category": "LLDB",
-				"title": "Toggle Numeric Pointer Values",
-				"command": "lldb.toggleDerefPointers"
-			},
-			{
-				"category": "LLDB",
-				"title": "Toggle Container Summaries",
-				"command": "lldb.toggleContainerSummary"
-			},
-			{
-				"category": "LLDB",
-				"title": "Run Diagnostics",
-				"command": "lldb.diagnose"
-			},
-			{
-				"category": "LLDB",
-				"title": "Generate launch configurations from Cargo.toml",
-				"command": "lldb.getCargoLaunchConfigs"
-			}
-		],
-		"languages": [
-			{
-				"id": "lldb.disassembly",
-				"aliases": [
-					"Disassembly"
-				],
-				"extensions": [
-					".disasm"
-				]
-			}
-		],
-		"grammars": [
-			{
-				"language": "lldb.disassembly",
-				"scopeName": "source.disassembly",
-				"path": "./syntaxes/disassembly.json"
-			}
-		],
 		"debuggers": [
 			{
 				"type": "lldb",

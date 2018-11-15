@@ -24,7 +24,7 @@ else if (triple.endsWith('pc-windows-msvc'))
 else
     debuggeeDir = path.join(debuggeeDir, 'debuggee');
 
-const extensionRoot = path.join(sourceDir, 'build', 'vscode-lldb');
+const extensionRoot = path.join(sourceDir, 'build');
 
 const debuggee = path.join(debuggeeDir, 'debuggee');
 const debuggeeSource = path.normalize(path.join(sourceDir, 'debuggee', 'cpp', 'debuggee.cpp'));

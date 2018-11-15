@@ -2,9 +2,8 @@ import * as zip from 'yauzl';
 import * as https from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Url } from 'url';
 
-export async function download(srcUrl: Url, destPath: string) {
+export async function download(srcUrl: string, destPath: string) {
     return new Promise((resolve, reject) => {
         let stm = fs.createWriteStream(destPath);
         https.get(srcUrl, response => {

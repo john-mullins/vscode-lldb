@@ -53,10 +53,8 @@ jobs:
 
   - script: |
       $(setenvLinux)
-      #cmake --build build --target vspackage
-      #cmake -E copy build/vscode-lldb.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-linux.vsix
-      cmake --build build --target zipnative
-      cmake -E copy build/vscode-lldb-native.zip $(Build.ArtifactStagingDirectory)/vscode-lldb-linux.zip
+      cmake --build build --target vsix
+      cmake -E copy build/vscode-lldb.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-linux.vsix
     displayName: 'Build'
 
   - task: PublishBuildArtifacts@1
@@ -130,10 +128,8 @@ jobs:
 
   - script: |
       $(setenvOSX)
-      # cmake --build build --target vspackage
-      # cmake -E copy build/vscode-lldb.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-osx.vsix
-      cmake --build build --target zipnative
-      cmake -E copy build/vscode-lldb-native.zip $(Build.ArtifactStagingDirectory)/vscode-lldb-osx.zip
+      cmake --build build --target vsix
+      cmake -E copy build/vscode-lldb.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-osx.vsix
     displayName: 'Build'
 
   - task: PublishBuildArtifacts@1
@@ -229,10 +225,8 @@ jobs:
 
   - script: |
       $(setenvWindows)
-      # cmake --build build --target vspackage
-      # cmake -E copy build/vscode-lldb.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-windows.vsix
-      cmake --build build --target zipnative
-      cmake -E copy build/vscode-lldb-native.zip $(Build.ArtifactStagingDirectory)/vscode-lldb-windows.zip
+      cmake --build build --target vsix
+      cmake -E copy build/vscode-lldb.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-windows.vsix
     displayName: 'Build'
 
   - task: PublishBuildArtifacts@1
