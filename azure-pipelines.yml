@@ -1,6 +1,6 @@
 variables:
   lldbBuildId: 275
-  runTests:
+  runTests: true
 
   setenvLinux: |
       export PATH=$HOME/.cargo/bin:$PATH

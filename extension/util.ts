@@ -1,7 +1,6 @@
-import { DebugConfiguration } from 'vscode';
+import { QuickPickItem, WorkspaceConfiguration, DebugConfiguration } from 'vscode';
 import * as cp from 'child_process';
 import { format } from 'util';
-import { QuickPickItem, WorkspaceConfiguration } from 'vscode';
 import * as stream from 'stream';
 import { output } from './main';
 
@@ -35,7 +34,7 @@ export function expandVariablesInObject(obj: any, expander: (type: string, key: 
 }
 
 // Expands variable references of the form ${dbgconfig:name} in all properties of launch configuration.
-export function expandDbgConfig(launchConfig: DebugConfiguration, dbgconfigConfig: WorkspaceConfiguration): DebugConfiguration {
+export function expandDbgConfig(debugConfig: DebugConfiguration, dbgconfigConfig: WorkspaceConfiguration): DebugConfiguration {
     let dbgconfig: Dict<any> = Object.assign({}, dbgconfigConfig);
 
     // Compute fixed-point of expansion of dbgconfig properties.
@@ -62,7 +61,7 @@ export function expandDbgConfig(launchConfig: DebugConfiguration, dbgconfigConfi
     } while (!converged);
 
     // Now expand dbgconfigs in the launch configuration.
-    launchConfig = expandVariablesInObject(launchConfig, (type, key) => {
+    debugConfig = expandVariablesInObject(debugConfig, (type, key) => {
         if (type == 'dbgconfig') {
             let value = dbgconfig[key];
             if (value == undefined)
@@ -71,7 +70,7 @@ export function expandDbgConfig(launchConfig: DebugConfiguration, dbgconfigConfi
         }
         return null;
     });
-    return launchConfig;
+    return debugConfig;
 }
 
 export async function getProcessList(currentUserOnly: boolean):

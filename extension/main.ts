@@ -114,7 +114,7 @@ class Extension implements DebugConfigurationProvider {
         launchConfig = this.mergeWorkspaceSettings(launchConfig, workspaceConfig);
 
         let dbgconfigConfig = workspace.getConfiguration('lldb.dbgconfig', folder ? folder.uri : undefined);
-        launchConfig = expandDbgConfig(launchConfig, dbgconfigConfig);
+        launchConfig = util.expandDbgConfig(launchConfig, dbgconfigConfig);
 
         // Transform "request":"custom" to "request":"launch" + "custom":true
         if (launchConfig.request == 'custom') {
@@ -232,43 +232,3 @@ class DisplaySettings {
     dereferencePointers: boolean = true;
     containerSummary: boolean = true;
 };
-
-// Expands variable references of the form ${dbgconfig:name} in all properties of launch configuration.
-function expandDbgConfig(debugConfig: DebugConfiguration, dbgconfigConfig: WorkspaceConfiguration): DebugConfiguration {
-    let dbgconfig: Dict<any> = Object.assign({}, dbgconfigConfig);
-
-    // Compute fixed-point of expansion of dbgconfig properties.
-    let expanding = '';
-    let converged = true;
-    let expander = (type: string, key: string) => {
-        if (type == 'dbgconfig') {
-            if (key == expanding)
-                throw new Error('Circular dependency detected during expansion of dbgconfig:' + key);
-            let value = dbgconfig[key];
-            if (value == undefined)
-                throw new Error('dbgconfig:' + key + ' is not defined');
-            converged = false;
-            return value.toString();
-        }
-        return null;
-    };
-    do {
-        converged = true;
-        for (let prop of Object.keys(dbgconfig)) {
-            expanding = prop;
-            dbgconfig[prop] = util.expandVariablesInObject(dbgconfig[prop], expander);
-        }
-    } while (!converged);
-
-    // Now expand dbgconfigs in the launch configuration.
-    debugConfig = util.expandVariablesInObject(debugConfig, (type, key) => {
-        if (type == 'dbgconfig') {
-            let value = dbgconfig[key];
-            if (value == undefined)
-                throw new Error('dbgconfig:' + key + ' is not defined');
-            return value.toString();
-        }
-        return null;
-    });
-    return debugConfig;
-}
