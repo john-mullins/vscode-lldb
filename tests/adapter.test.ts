@@ -57,7 +57,7 @@ suite('Adapter tests', () => {
             }
             await dc.start(debugAdapter.port);
         } catch (err) {
-            console.log('Exception is test setup: %s', err);
+            log('Exception is test setup: %s', err);
             dumpAdapterLog();
         }
     });
@@ -124,19 +124,27 @@ suite('Adapter tests', () => {
             let testcase = 'header_nodylib';
 
             await launch({ name: 'stop on a breakpoint', program: debuggee, args: [testcase], cwd: path.dirname(debuggee) });
+            log('Set breakpoint 1');
             await setBreakpointAsyncSource;
+            log('Set breakpoint 2');
             await setBreakpointAsyncHeader;
 
+            log('Wait for stop 1');
             let stopEvent = await withTimeout(3000, waitForStopAsync);
             await verifyLocation(stopEvent.body.threadId, debuggeeSource, bpLineSource);
 
             let waitForStopAsync2 = waitForStopEvent();
+            log('Continue 1');
             await dc.continueRequest({ threadId: 0 });
+            log('Wait for stop 2');
             let stopEvent2 = await withTimeout(3000, waitForStopAsync2);
             await verifyLocation(stopEvent.body.threadId, debuggeeHeader, bpLineHeader);
 
+            log('Continue 2');
             await dc.continueRequest({ threadId: 0 });
+            log('Wait for exit');
             await withTimeout(3000, waitForExitAsync);
+            log('Done');
         });
 
         test('page stack', async function () {
@@ -490,10 +498,10 @@ function findMarker(file: string, marker: string): number {
 async function launch(launchArgs: any): Promise<dp.LaunchResponse> {
     let waitForInit = dc.waitForEvent('initialized');
     await dc.initializeRequest()
-    let attachResp = dc.launchRequest(launchArgs);
+    let launchResp = dc.launchRequest(launchArgs);
     await waitForInit;
     dc.configurationDoneRequest();
-    return attachResp;
+    return launchResp;
 }
 
 async function attach(attachArgs: any): Promise<dp.AttachResponse> {
