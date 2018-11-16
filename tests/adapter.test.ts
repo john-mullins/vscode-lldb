@@ -215,9 +215,11 @@ suite('Adapter tests', () => {
             let stoppedEvent = await launchAndWaitForStop({ name: 'expressions', program: debuggee, args: ['vars'] });
             let frameId = await getTopFrameId(stoppedEvent.body.threadId);
 
+            log('Waiting a+b');
             let response1 = await dc.evaluateRequest({ expression: "a+b", frameId: frameId, context: "watch" });
             assert.equal(response1.body.result, "70");
 
+            log('Waiting /py...');
             let response2 = await dc.evaluateRequest({ expression: "/py sum([int(x) for x in $array_int])", frameId: frameId, context: "watch" });
             assert.equal(response2.body.result, "55"); // sum(1..10)
 
@@ -226,13 +228,18 @@ suite('Adapter tests', () => {
 
             for (let i = 1; i < 10; ++i) {
                 let waitForStopAsync = waitForStopEvent();
+                log('%d: continue');
                 await dc.continueRequest({ threadId: 0 });
+
+                log('%d: waiting for stop');
                 let stoppedEvent = await withTimeout(3000, waitForStopAsync);
                 let frameId = await getTopFrameId(stoppedEvent.body.threadId);
 
+                log('%d: evaluate');
                 let response1 = await dc.evaluateRequest({ expression: "s1.d", frameId: frameId, context: "watch" });
                 let response2 = await dc.evaluateRequest({ expression: "s2.d", frameId: frameId, context: "watch" });
 
+                log('%d: compareVariables');
                 await compareVariables(response1.body.variablesReference, { '[0]': i, '[1]': i, '[2]': i, '[3]': i });
                 await compareVariables(response2.body.variablesReference, { '[0]': i * 10, '[1]': i * 10, '[2]': i * 10, '[3]': i * 10 });
             }
@@ -591,7 +598,9 @@ async function waitForStopEvent(): Promise<dp.StoppedEvent> {
 
 async function launchAndWaitForStop(launchArgs: any): Promise<dp.StoppedEvent> {
     let waitForStopAsync = waitForStopEvent();
+    log('Launching');
     await launch(launchArgs);
+    log('Waiting to stop');
     let stoppedEvent = await waitForStopAsync;
     return <dp.StoppedEvent>stoppedEvent;
 }
@@ -619,6 +628,10 @@ function withTimeout<T>(timeoutMillis: number, promise: Promise<T>): Promise<T> 
             resolve(result);
         });
     });
+}
+
+function log(fmt: string, ...params: any[]) {
+    adapterLog.write(format('<<<<< ' + fmt + ' >>>>>\n', params));
 }
 
 function dumpAdapterLog() {
