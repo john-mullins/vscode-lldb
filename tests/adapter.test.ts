@@ -64,10 +64,11 @@ suite('Adapter tests', () => {
 
     teardown(async function () {
         try {
+            log('teardown: waiting for stop');
             await withTimeout(3000, dc.stop().catch());
         } catch (e) {
             if (debugAdapter) {
-                console.log('Debug adapter did not stop after shutdown request.')
+                log('teardown: Debug adapter did not stop after shutdown request.');
                 debugAdapter.process.kill();
             }
             debugAdapter = null;
@@ -444,6 +445,7 @@ async function startDebugAdapter(logStream: stream.Writable): Promise<AdapterPro
     let adapter: cp.ChildProcess;
     if (useCodeLLDB) {
         let codelldb = path.join(extensionRoot, 'adapter2/codelldb');
+        log('startDebugAdapter: launching %s', codelldb);
         adapter = cp.spawn(codelldb, ['--lldb=lldb'], {
             stdio: ['ignore', 'pipe', 'pipe'],
             cwd: extensionRoot,
@@ -459,6 +461,7 @@ async function startDebugAdapter(logStream: stream.Writable): Promise<AdapterPro
             '-O', format('command script import \'%s\'', path.join(extensionRoot, 'adapter')),
             '-O', format('script adapter.run_tcp_session(0 ,\'%s\')', new Buffer(JSON.stringify(params)).toString('base64'))
         ]
+        log('startDebugAdapter: launching %s', lldb);
         adapter = cp.spawn(lldb, args, {
             stdio: ['ignore', 'pipe', 'pipe'],
             cwd: extensionRoot,
@@ -598,9 +601,9 @@ async function waitForStopEvent(): Promise<dp.StoppedEvent> {
 
 async function launchAndWaitForStop(launchArgs: any): Promise<dp.StoppedEvent> {
     let waitForStopAsync = waitForStopEvent();
-    log('Launching');
+    log('launchAndWaitForStop: launching');
     await launch(launchArgs);
-    log('Waiting to stop');
+    log('launchAndWaitForStop: waiting to stop');
     let stoppedEvent = await waitForStopAsync;
     return <dp.StoppedEvent>stoppedEvent;
 }
@@ -620,6 +623,7 @@ function withTimeout<T>(timeoutMillis: number, promise: Promise<T>): Promise<T> 
     let error = new Error('Timed out');
     return new Promise<T>((resolve, reject) => {
         let timer = setTimeout(() => {
+            log('withTimeout: timed out');
             (<any>error).code = 'Timeout';
             reject(error);
         }, timeoutMillis);
