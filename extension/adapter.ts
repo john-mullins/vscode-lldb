@@ -59,8 +59,7 @@ export async function startDebugAdapter(
     }
     let adapter = spawnDebugger(adapterArgs, adapterExe, adapterEnv);
     let regex = new RegExp('^Listening on port (\\d+)\\s', 'm');
-    util.pipeToOutputPanel(adapter.stdout);
-    util.pipeToOutputPanel(adapter.stderr);
+    util.logProcessOutput(adapter, output);
     let match = await util.waitForPattern(adapter, adapter.stdout, regex);
 
     let adapterProc = new AdapterProcess(adapter);

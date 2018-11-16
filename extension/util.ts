@@ -1,8 +1,7 @@
-import { QuickPickItem, WorkspaceConfiguration, DebugConfiguration } from 'vscode';
+import { QuickPickItem, WorkspaceConfiguration, DebugConfiguration, OutputChannel } from 'vscode';
 import * as cp from 'child_process';
 import { format } from 'util';
 import * as stream from 'stream';
-import { output } from './main';
 
 export interface Dict<T> {
     [key: string]: T;
@@ -214,8 +213,11 @@ export function waitForPattern(
     });
 }
 
-export function pipeToOutputPanel(stream: stream.Readable) {
-    stream.on('data', (chunk) => {
+export function logProcessOutput(process: cp.ChildProcess, output: OutputChannel) {
+    process.stdout.on('data', (chunk) => {
+        output.append(chunk.toString());
+    });
+    process.stderr.on('data', (chunk) => {
         output.append(chunk.toString());
     });
 }

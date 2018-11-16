@@ -47,8 +47,7 @@ export async function diagnose(output: OutputChannel): Promise<boolean> {
         for (let name of lldbNames) {
             try {
                 let lldb = adapter.spawnDebugger(['-v'], name, adapterEnv);
-                util.pipeToOutputPanel(lldb.stdout);
-                util.pipeToOutputPanel(lldb.stderr);
+                util.logProcessOutput(lldb, output);
                 version = (await util.waitForPattern(lldb, lldb.stdout, pattern))[1];
                 adapterPath = name;
                 break;
@@ -75,8 +74,7 @@ export async function diagnose(output: OutputChannel): Promise<boolean> {
                 '-O', 'script print(lldb.SBDebugger.Create().IsValid())',
                 '-O', 'script print("OK")'
             ], adapterPath, adapterEnv);
-            util.pipeToOutputPanel(lldb2.stdout);
-            util.pipeToOutputPanel(lldb2.stderr);
+            util.logProcessOutput(lldb2, output);
             // [^] = match any char, including newline
             let match2 = await util.waitForPattern(lldb2, lldb2.stdout, new RegExp('^True$[^]*^OK$', 'm'));
         }

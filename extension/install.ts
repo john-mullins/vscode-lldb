@@ -36,8 +36,7 @@ export async function installVsix(vsixPath: string, context: ExtensionContext) {
     // let vscode = cp.spawn(process.execPath, ['--install-extension', file], {
     //     stdio: ['ignore', 'pipe', 'pipe']
     // });
-    // util.pipeToOutputPanel(vscode.stdout);
-    // util.pipeToOutputPanel(vscode.stderr);
+    // util.logProcessOutput(vscode, output);
     // vscode.on('error', err => window.showErrorMessage(err.toString()));
     // vscode.on('exit', (exitCode, signal) => {
     //     if (exitCode != 0)
