@@ -6,6 +6,7 @@ import {
 } from 'vscode';
 import * as os from 'os';
 import * as path from 'path';
+import * as cp from 'child_process';
 import { format, inspect } from 'util';
 import * as diagnostics from './diagnostics';
 import * as startup from './adapter';
@@ -13,7 +14,7 @@ import * as htmlView from './htmlView';
 import * as cargo from './cargo';
 import * as util from './util';
 import { Dict } from './util';
-import * as bootstrap from './bootstrap';
+import * as install from './install';
 
 export let output = window.createOutputChannel('LLDB');
 
@@ -213,9 +214,15 @@ class Extension implements DebugConfigurationProvider {
     }
 
     async test() {
-        let url = "https://dev.azure.com/vadimcn/_apis/resources/Containers/860516?itemPath=vscode-lldb%2Fvscode-lldb-linux.vsix";
+        let url = "https://github.com/vadimcn/vscode-lldb/releases/download/v20181115.6/vscode-lldb-linux.vsix";
         let file = path.join(os.tmpdir(), 'vscode-lldb.vsix');
-        await bootstrap.download(url, file);
+        // try {
+        //     await install.download(url, file);
+        // } catch (err) {
+        //     window.showErrorMessage('Could not download native dependencies');
+        //     return;
+        // }
+        install.installVsix(file, this.context);
     }
 };
 

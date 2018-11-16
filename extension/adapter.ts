@@ -59,7 +59,9 @@ export async function startDebugAdapter(
     }
     let adapter = spawnDebugger(adapterArgs, adapterExe, adapterEnv);
     let regex = new RegExp('^Listening on port (\\d+)\\s', 'm');
-    let match = await waitPattern(adapter, regex);
+    util.pipeToOutputPanel(adapter.stdout);
+    util.pipeToOutputPanel(adapter.stderr);
+    let match = await util.waitForPattern(adapter, adapter.stdout, regex);
 
     let adapterProc = new AdapterProcess(adapter);
     adapterProc.port = parseInt(match[1]);
@@ -106,15 +108,4 @@ export function spawnDebugger(args: string[], adapterPath: string, adapterEnv: D
         options.env['PATH'] = '/usr/bin:' + process.env['PATH'];
     }
     return cp.spawn(adapterPath, args, options);
-}
-
-export async function waitPattern(adapter: cp.ChildProcess, pattern: RegExp, timeout_millis = 5000) {
-    adapter.stdout.on('data', (chunk) => {
-        output.append(chunk.toString()); // Send to "LLDB" output pane.
-    });
-    // Send sdterr to the output pane as well.
-    adapter.stderr.on('data', (chunk) => {
-        output.append(chunk.toString());
-    });
-    return util.waitForPattern(adapter, adapter.stdout, pattern, timeout_millis);
 }

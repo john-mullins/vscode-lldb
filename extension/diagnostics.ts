@@ -2,6 +2,7 @@ import { workspace, window, commands, OutputChannel, ConfigurationTarget, Uri } 
 import { inspect, format } from "util";
 import * as ver from './ver';
 import * as adapter from './adapter';
+import * as util from './util';
 
 enum DiagnosticsStatus {
     Succeeded = 0,
@@ -46,7 +47,9 @@ export async function diagnose(output: OutputChannel): Promise<boolean> {
         for (let name of lldbNames) {
             try {
                 let lldb = adapter.spawnDebugger(['-v'], name, adapterEnv);
-                version = (await adapter.waitPattern(lldb, pattern))[1];
+                util.pipeToOutputPanel(lldb.stdout);
+                util.pipeToOutputPanel(lldb.stderr);
+                version = (await util.waitForPattern(lldb, lldb.stdout, pattern))[1];
                 adapterPath = name;
                 break;
             } catch (err) {
@@ -72,8 +75,10 @@ export async function diagnose(output: OutputChannel): Promise<boolean> {
                 '-O', 'script print(lldb.SBDebugger.Create().IsValid())',
                 '-O', 'script print("OK")'
             ], adapterPath, adapterEnv);
+            util.pipeToOutputPanel(lldb2.stdout);
+            util.pipeToOutputPanel(lldb2.stderr);
             // [^] = match any char, including newline
-            let match2 = await adapter.waitPattern(lldb2, new RegExp('^True$[^]*^OK$', 'm'));
+            let match2 = await util.waitForPattern(lldb2, lldb2.stdout, new RegExp('^True$[^]*^OK$', 'm'));
         }
         output.appendLine('--- Done ---');
         output.show(true);

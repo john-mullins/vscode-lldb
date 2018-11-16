@@ -54,8 +54,10 @@ jobs:
 
   - script: |
       $(setenvLinux)
-      cmake --build build --target vsix
-      cmake -E copy build/vscode-lldb.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-linux.vsix
+      cmake --build build --target vsix_portable
+      cmake -E copy build/vscode-lldb-portable.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-portable.vsix
+      cmake --build build --target vsix_full
+      cmake -E copy build/vscode-lldb-full.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-linux.vsix
     displayName: 'Build'
 
   - task: PublishBuildArtifacts@1
@@ -129,8 +131,8 @@ jobs:
 
   - script: |
       $(setenvOSX)
-      cmake --build build --target vsix
-      cmake -E copy build/vscode-lldb.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-osx.vsix
+      cmake --build build --target vsix_full
+      cmake -E copy build/vscode-lldb-full.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-osx.vsix
     displayName: 'Build'
 
   - task: PublishBuildArtifacts@1
@@ -226,8 +228,8 @@ jobs:
 
   - script: |
       $(setenvWindows)
-      cmake --build build --target vsix
-      cmake -E copy build/vscode-lldb.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-windows.vsix
+      cmake --build build --target vsix_full
+      cmake -E copy build/vscode-lldb-full.vsix $(Build.ArtifactStagingDirectory)/vscode-lldb-windows.vsix
     displayName: 'Build'
 
   - task: PublishBuildArtifacts@1

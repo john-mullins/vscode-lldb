@@ -32,7 +32,9 @@
 		"url": "https://github.com/vadimcn/vscode-lldb/issues"
 	},
 	"qna": "https://gitter.im/vscode-lldb/QnA",
-	"dependencies": {},
+	"dependencies": {
+		"yauzl": "^2.10.0"
+	},
 	"devDependencies": {
 		"@types/mocha": "^5.2.0",
 		"@types/node": "^8.10",
@@ -42,7 +44,6 @@
 		"vscode-debugadapter-testsupport": "^1.32.0",
 		"vscode-debugprotocol": "^1.32.0",
 		"memory-streams": "^0.1.3",
-		"yauzl": "^2.10.0",
 		"@types/yauzl": "^2.9.0"
 	},
 	"scripts": {

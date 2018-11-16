@@ -3,6 +3,7 @@ import * as cp from 'child_process';
 import { format } from 'util';
 import { QuickPickItem, WorkspaceConfiguration } from 'vscode';
 import * as stream from 'stream';
+import { output } from './main';
 
 export interface Dict<T> {
     [key: string]: T;
@@ -211,5 +212,11 @@ export function waitForPattern(
                 reject(err);
             }
         });
+    });
+}
+
+export function pipeToOutputPanel(stream: stream.Readable) {
+    stream.on('data', (chunk) => {
+        output.append(chunk.toString());
     });
 }

@@ -9,7 +9,8 @@
   "tasks": [
     {
       "label": "extension",
-      "group": "build"
+      "group": "build",
+      "problemMatcher": "$tsc"
     },
     {
       "label": "tests",

@@ -21,7 +21,7 @@ add_subdirectory(lldb)
 add_subdirectory(extension)
 add_subdirectory(tests)
 
-### Extension layout
+### Extension
 
 add_copy_files(adapter
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/adapter
@@ -59,17 +59,18 @@ if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
                    ${CMAKE_CURRENT_BINARY_DIR}/lldb/lib/python2.7/site-packages/lldb/lldb-argdumper
                    )
 endif()
-
-add_custom_target(zip_native
-    DEPENDS lldb codelldb
+add_custom_target(strip
     COMMAND ${StripFiles}
-    COMMAND zip -r -9 ${ZipSymlinks} ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb-native.zip lldb adapter2
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 # VSIX package
 
-set(PackagedFiles
+add_copy_directory(node_modules
+    ${CMAKE_SOURCE_DIR}/node_modules
+    DESTINATION  ${CMAKE_BINARY_DIR}/node_modules
+)
+
+set(PackagedFilesPortable
     README.md
     CHANGELOG.md
     MANUAL.md
@@ -78,23 +79,41 @@ set(PackagedFiles
     syntaxes/*
     extension/*.js
     adapter/**/*.py
+)
+
+set(PackagedFilesFull
+    ${PackagedFilesPortable}
     adapter2/*.py
     adapter2/codelldb
-    adapter2/codelldb.*
+    adapter2/codelldb.dll
+    adapter2/libcodelldb.so*
     lldb/bin/**/*
     lldb/lib/**/*
 )
 
 set(Content **)
-foreach(Line ${PackagedFiles})
+foreach(Line ${PackagedFilesPortable})
     set(Content ${Content}\n!${Line})
 endforeach()
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/.vscodeignore ${Content})
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/vscodeignore-portable ${Content})
 
-add_custom_target(vsix
-    DEPENDS adapter formatters images manifest extension lldb codelldb
-    COMMAND ${StripFiles}
-    COMMAND vsce package -o ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb.vsix
+set(Content **)
+foreach(Line ${PackagedFilesFull})
+    set(Content ${Content}\n!${Line})
+endforeach()
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/vscodeignore-full ${Content})
+
+add_custom_target(vsix_portable
+    DEPENDS adapter formatters images manifest extension node_modules
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/vscodeignore-portable ${CMAKE_CURRENT_BINARY_DIR}/.vscodeignore
+    COMMAND vsce package -o ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb-portable.vsix
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+add_custom_target(vsix_full
+    DEPENDS adapter formatters images manifest extension node_modules lldb codelldb strip
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/vscodeignore-full ${CMAKE_CURRENT_BINARY_DIR}/.vscodeignore
+    COMMAND vsce package -o ${CMAKE_CURRENT_BINARY_DIR}/vscode-lldb-full.vsix
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
